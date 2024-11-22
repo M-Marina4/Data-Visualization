@@ -7,8 +7,45 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(ggplot2)
+library(readxl)
 library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(lubridate)
+```
 
+```{r}
+# Load data
+file_path <- "water_data.xlsx"
+data <- read_excel(file_path)
+
+# Remove rows with missing 'Date'
+data_cleaned <- data %>% filter(!is.na(Date))
+
+# Replace missing 'Sampling_Time' with "00:00:00"
+data_cleaned <- data_cleaned %>%
+  mutate(Sampling_Time = ifelse(is.na(Sampling_Time), "00:00:00", Sampling_Time))
+
+# Combine 'Date' and 'Sampling_Time' into a single Datetime column
+data_cleaned <- data_cleaned %>%
+  mutate(Datetime = as.POSIXct(paste(Date, Sampling_Time), format = "%Y-%m-%d %H:%M:%S"))
+
+# Drop columns with excessive missing values (e.g., X, Y)
+data_cleaned <- data_cleaned %>% select(-X, -Y)
+
+
+# Step 2: Exploratory Data Analysis (EDA)
+# Univariate Analysis - Histogram of Dissolved Oxygen
+ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribution of Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "Frequency")
+
+# Temporal Trends - Dissolved Oxygen Over Time
+ggplot(data_cleaned, aes(x = Datetime, y = Dissolved_Oxygen)) +
+  geom_line(color = "blue") +
+  labs(title = "Dissolved Oxygen Over Time", x = "Date", y = "Dissolved Oxygen (mg/L)")
+
+# Save Cleaned Data
+write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 ```
 
