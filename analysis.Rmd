@@ -1,0 +1,14 @@
+---
+title: "analysis"
+author: "Marina Melkonyan"
+date: "2024-11-22"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+
+```
+
