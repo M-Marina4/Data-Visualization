@@ -48,4 +48,29 @@ ggplot(data_cleaned, aes(x = Datetime, y = Dissolved_Oxygen)) +
 # Save Cleaned Data
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 ```
+```{r}
+# Time Series for BOD5 and COD
+ggplot(data_cleaned, aes(x = Datetime)) +
+  geom_line(aes(y = BOD5, color = "BOD5")) +
+  geom_line(aes(y = COD, color = "COD")) +
+  labs(title = "Temporal Trends of BOD5 and COD", x = "Datetime", y = "Concentration (mg/L)") +
+  scale_color_manual(values = c("BOD5" = "green", "COD" = "orange"))
+```
+
+
+```{r}
+# Step 5: Correlation Heatmap
+# Select numeric columns
+numeric_cols <- data_cleaned %>%
+  select(where(is.numeric))
+
+# Compute correlation matrix
+cor_matrix <- cor(numeric_cols, use = "complete.obs")
+
+
+# Step 6: Scatterplot Matrix
+pairs(numeric_cols[, 1:8], main = "Scatterplot Matrix for Selected Variables")
+w
+```
+
 
