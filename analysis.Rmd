@@ -12,13 +12,20 @@ library(dplyr)
 library(ggplot2)
 library(corrplot)
 library(lubridate)
+library(GGally)
+library(knitr)
+library(ggcorrplot)
+library(FactoMineR)
+library(factoextra)
+library(pheatmap)
 ```
 
 ```{r}
-# Load data
 file_path <- "water_data.xlsx"
 data <- read_excel(file_path)
+```
 
+```{r}
 # Remove rows with missing 'Date'
 data_cleaned <- data %>% filter(!is.na(Date))
 
@@ -32,22 +39,32 @@ data_cleaned <- data_cleaned %>%
 
 # Drop columns with excessive missing values (e.g., X, Y)
 data_cleaned <- data_cleaned %>% select(-X, -Y)
+```
 
+```{r}
+write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
+```
 
-# Step 2: Exploratory Data Analysis (EDA)
+**Exploratory Data Analysis (EDA)**
+
+```{r}
 # Univariate Analysis - Histogram of Dissolved Oxygen
 ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
   geom_histogram(binwidth = 1, fill = "blue", color = "black") +
   labs(title = "Distribution of Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "Frequency")
-
+```
+```{r}
 # Temporal Trends - Dissolved Oxygen Over Time
 ggplot(data_cleaned, aes(x = Datetime, y = Dissolved_Oxygen)) +
   geom_line(color = "blue") +
   labs(title = "Dissolved Oxygen Over Time", x = "Date", y = "Dissolved Oxygen (mg/L)")
-
-# Save Cleaned Data
-write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 ```
+
+
+**Outlier Detection**
+
+**Time Series Analysis**
+
 ```{r}
 # Time Series for BOD5 and COD
 ggplot(data_cleaned, aes(x = Datetime)) +
@@ -57,20 +74,64 @@ ggplot(data_cleaned, aes(x = Datetime)) +
   scale_color_manual(values = c("BOD5" = "green", "COD" = "orange"))
 ```
 
+**Correlation Analysis**
 
 ```{r}
-# Step 5: Correlation Heatmap
 # Select numeric columns
 numeric_cols <- data_cleaned %>%
   select(where(is.numeric))
 
 # Compute correlation matrix
 cor_matrix <- cor(numeric_cols, use = "complete.obs")
-
-
-# Step 6: Scatterplot Matrix
 pairs(numeric_cols[, 1:8], main = "Scatterplot Matrix for Selected Variables")
-w
 ```
+
+**Principal Component Analysis (PCA)**
+
+```{r}
+numeric_data <- data_cleaned %>%
+  select(where(is.numeric))
+```
+
+```{r}
+numeric_data <- numeric_data %>%
+  select(where(~ all(!is.na(.)))) 
+```
+
+```{r}
+numeric_data_scaled <- scale(numeric_data)
+```
+
+```{r}
+data_pca = prcomp(x = numeric_data_scaled, center = T, scale. = T)
+summary(data_pca)
+```
+
+```{r}
+pheatmap(numeric_data_scaled, cluster_rows = T, cluster_cols = T)
+```
+
+```{r}
+fviz_screeplot(data_pca, addlabels = T)
+```
+
+```{r}
+fviz_pca_biplot(data_pca, axes = c(1, 2), geom = c("point", "text"), label = "var")
+```
+
+
+```{r}
+fviz_pca_var(data_pca, col.var = "black") 
+```
+
+**Clustering**
+
+
+
+
+
+**Geospatial Analysis**
+
+
 
 
