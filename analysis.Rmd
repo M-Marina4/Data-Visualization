@@ -23,7 +23,71 @@ library(pheatmap)
 ```{r}
 #test 1
 file_path <- "water_data.xlsx"
-data <- read_excel(file_path)
+data <- read_excel(file_path, col_types = "text")
+
+```
+
+**Data Cleaning**
+```{r}
+# Replace spaces with underscores in all column names
+colnames(data) <- gsub(" ", "_", colnames(data))
+# Normalize column names by removing extra underscores and spaces
+colnames(data) <- gsub("_+", "_", colnames(data))  # Replace multiple underscores with a single one
+colnames(data) <- gsub("_$", "", colnames(data))   # Remove trailing underscores
+colnames(data) <- gsub("^_", "", colnames(data))   # Remove leading underscores
+colnames(data) <- gsub(" ", "_", colnames(data))   # Replace spaces with single underscores
+
+# Rename columns with underscores and special characters to English equivalents
+colnames(data)[colnames(data) == "Դիտակետի_համար"] <- "Station_Number"
+colnames(data)[colnames(data) == "Ջրային_օբյեկտ"] <- "Water_Object"
+colnames(data)[colnames(data) == "Գետավազան"] <- "River_Basin"
+colnames(data)[colnames(data) == "Դիտակետի_տեղադրություն"] <- "Station_Location"
+colnames(data)[colnames(data) == "Ամսաթիվ"] <- "Date"
+colnames(data)[colnames(data) == "Նմուշառման_ժամը"] <- "Sampling_Time"
+colnames(data)[colnames(data) == "Լուծված_թթվածին._մգ/լ"] <- "Dissolved_Oxygen"
+colnames(data)[colnames(data) == "ԹԿՊ5._մգ/լ"] <- "BOD5"
+colnames(data)[colnames(data) == "Բիքրոմատային_օքսիդացում._մգ_Օ/լ"] <- "COD"
+colnames(data)[colnames(data) == "Ամոնիում_իոն._մգ_N_/լ"] <- "NH4"
+colnames(data)[colnames(data) == "Նիտրիտ_իոն._մգ_N_/լ"] <- "NO2"
+colnames(data)[colnames(data) == "Նիտրատ_իոն._մգ_N_/լ"] <- "NO3"
+colnames(data)[colnames(data) == "ֆոսֆատներ._մգ/լ"] <- "PO4"
+colnames(data)[colnames(data) == "Zn_մգ/լ"] <- "Zn"
+colnames(data)[colnames(data) == "Cu_մգ/լ"] <- "Cu"
+colnames(data)[colnames(data) == "Cr_մգ/լ"] <- "Cr"
+colnames(data)[colnames(data) == "As_մգ/լ"] <- "As"
+colnames(data)[colnames(data) == "Cd_մգ/լ"] <- "Cd"
+colnames(data)[colnames(data) == "Pb_մգ/լ"] <- "Pb"
+colnames(data)[colnames(data) == "Ni_մգ/լ"] <- "Ni"
+colnames(data)[colnames(data) == "Mo_մգ/լ"] <- "Mo"
+colnames(data)[colnames(data) == "Mn_մգ/լ"] <- "Mn"
+colnames(data)[colnames(data) == "V_մգ/լ"] <- "V"
+colnames(data)[colnames(data) == "Co_մգ/լ"] <- "Co"
+colnames(data)[colnames(data) == "Fe_մգ/լ"] <- "Fe"
+colnames(data)[colnames(data) == "Ca_մգ/լ"] <- "Ca"
+colnames(data)[colnames(data) == "Mg_մգ/լ"] <- "Mg"
+colnames(data)[colnames(data) == "Ba_մգ/լ"] <- "Ba"
+colnames(data)[colnames(data) == "Be_մգ/լ"] <- "Be"
+colnames(data)[colnames(data) == "K_մգ/լ"] <- "K"
+colnames(data)[colnames(data) == "Na_մգ/լ"] <- "Na"
+colnames(data)[colnames(data) == "B_մգ/լ"] <- "B"
+colnames(data)[colnames(data) == "Al_մգ/լ"] <- "Al"
+colnames(data)[colnames(data) == "Se_մգ/լ"] <- "Se"
+colnames(data)[colnames(data) == "Sb_մգ/լ"] <- "Sb"
+colnames(data)[colnames(data) == "Sn_մգ/լ"] <- "Sn"
+colnames(data)[colnames(data) == "Ընդհանուր_անօրգանական_ազոտ._մգ_N_/լ"] <- "Total_Inorganic_N"
+colnames(data)[colnames(data) == "P_մգ/լ"] <- "P"
+colnames(data)[colnames(data) == "Քլորիդ_իոն._մգ/լ"] <- "Cl"
+colnames(data)[colnames(data) == "Սուլֆատ_իոն._մգ/լ"] <- "SO4"
+colnames(data)[colnames(data) == "Սիլիցիում._մգ/լ"] <- "Si"
+colnames(data)[colnames(data) == "ԸԼՆ._Հանքայնացում_._մգ/լ."] <- "TDS"
+colnames(data)[colnames(data) == "Տեսակարար_էլեկտրահաղորդականություն._Միկրոսիմ./սմ2"] <- "EC_microS_cm"
+colnames(data)[colnames(data) == "Կոշտություն,_մգ-էկվ/լ"] <- "Hardness"
+colnames(data)[colnames(data) == "Կախված_մասնիկներ._մգ/լ"] <- "Suspended_Solids"
+
+# Display the updated column names
+print(colnames(data))
+
+head(data)
 ```
 
 ```{r}
@@ -38,12 +102,28 @@ data_cleaned <- data_cleaned %>%
 data_cleaned <- data_cleaned %>%
   mutate(Datetime = as.POSIXct(paste(Date, Sampling_Time), format = "%Y-%m-%d %H:%M:%S"))
 
-# Drop columns with excessive missing values (e.g., X, Y)
-data_cleaned <- data_cleaned %>% select(-X, -Y)
+# List of columns to convert to numeric
+columns_to_convert <- c(
+  "Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO2", "NO3", "PO4", "Zn",
+  "Cu", "Cr", "As", "Cd", "Pb", "Ni", "Mo", "Mn", "V", "Co", "Fe", "Ca",
+  "Mg", "Ba", "Be", "K", "Na", "B", "Al", "Sb", "Sn", "Total_Inorganic_N",
+  "P", "Cl", "Si", "Hardness", "Suspended_Solids", "TDS"
+)
+
+# Convert specified columns to numeric
+data_cleaned[columns_to_convert] <- lapply(data_cleaned[columns_to_convert], function(column) {
+  # Replace non-numeric values (e.g., "<0.01") with NA before conversion
+  column <- gsub("[^0-9.Ee-]", "", column)  # Remove non-numeric characters
+  as.numeric(column)  # Convert to numeric
+})
+
+
 ```
 
 ```{r}
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
+str(data_cleaned)
+
 ```
 
 **Exploratory Data Analysis (EDA)**
@@ -127,6 +207,58 @@ fviz_pca_var(data_pca, col.var = "black")
 
 **Clustering**
 
+```{r}
+# Step 1: Prepare data for clustering
+# Use scaled numeric data from the PCA section for clustering
+data_for_clustering <- numeric_data_scaled
+
+
+# Step 2: K-means Clustering
+set.seed(123)  # For reproducibility
+
+# Determine the optimal number of clusters using the Elbow Method
+wss <- sapply(1:10, function(k) {
+  kmeans(data_for_clustering, centers = k, nstart = 25)$tot.withinss
+})
+
+# Plot the Elbow Method
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE,
+     xlab = "Number of Clusters",
+     ylab = "Total Within-Cluster Sum of Squares",
+     main = "Elbow Method for Optimal Clusters")
+
+# Apply K-means clustering with an optimal number of clusters (e.g., 3)
+kmeans_result <- kmeans(data_for_clustering, centers = 3, nstart = 25)
+
+# Add cluster labels to the original data
+data_cleaned$Cluster <- as.factor(kmeans_result$cluster)
+
+
+
+```
+```{r}
+# Compute dissimilarity matrix
+dist_matrix <- dist(data_for_clustering, method = "euclidean")
+
+# Perform hierarchical clustering
+hclust_result <- hclust(dist_matrix, method="complete")
+
+# Plot the dendrogram
+plot(hclust_result, labels = FALSE, hang = -1,
+     main = "Dendrogram of Hierarchical Clustering",
+     xlab = "Samples",
+     ylab = "Height")
+
+# Cut the dendrogram into clusters
+hclust_clusters <- cutree(hclust_result, k = 3)
+
+# Add hierarchical clustering labels to the original data
+data_cleaned$HCluster <- as.factor(hclust_clusters)
+
+# Visualize heatmap with hierarchical clustering
+pheatmap(data_for_clustering, cluster_rows = hclust_result, cluster_cols = FALSE,
+         main = "Heatmap with Hierarchical Clustering")
+```
 
 
 
