@@ -144,7 +144,17 @@ data_cleaned[columns_to_convert] <- lapply(data_cleaned[columns_to_convert], fun
   as.numeric(column)  # Convert to numeric
 })
 
+```
 
+```{r}
+threshold <- 1e-10  # Define a threshold for small values
+# Replace very small values (absolute values less than threshold) with 0
+data_cleaned[columns_to_convert] <- lapply(data_cleaned[columns_to_convert], function(x) {
+  if (is.numeric(x)) {
+    x[abs(x) < threshold] <- 0
+  }
+  return(x)
+})
 ```
 
 ```{r}
@@ -293,5 +303,30 @@ pheatmap(data_for_clustering, cluster_rows = hclust_result, cluster_cols = FALSE
 **Geospatial Analysis**
 
 
+```{r}
+# Filter data for "Sevan Lake" and "Debed river basin"
+filtered_data <- data_cleaned %>%
+  filter(River_Basin %in% c("Sevan Lake", "Debed river basin", "Metsamor river basin"))
+
+# Create a visually appealing boxplot
+ggplot(filtered_data, aes(x = River_Basin, y = Dissolved_Oxygen, fill = River_Basin)) +
+  geom_boxplot(outlier.color = "red", outlier.size = 2) + # Highlight outliers
+  labs(
+    title = "Dissolved Oxygen by River Basin",
+    subtitle = "Comparing Sevan Lake and Debed River Basin",
+    x = "River Basin",
+    y = "Dissolved Oxygen (mg/L)"
+  ) +
+  scale_fill_manual(values = c("Sevan Lake" = "#1f77b4", "Debed river basin" = "#ff7f0e", "Metsamor river basin"='green')) + # Custom colors
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.position = "none" # Hide legend as it's clear from labels
+  )
+
+
+```
 
 
