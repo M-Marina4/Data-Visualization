@@ -21,18 +21,21 @@ library(pheatmap)
 ```
 
 ```{r}
-#test 1
-file_path <- "water_data.xlsx"
-data <- read_excel(file_path, col_types = "text")
+col_types <- c(rep("text", 4), 
+               "date", 
+               "date",
+               rep("text", 39)) 
 
+
+file_path <- "water_data.xlsx"
+data <- read_excel(file_path, col_types = col_types)
 ```
 
 **Data Cleaning**
+
 ```{r}
-# Replace spaces with underscores in all column names
 colnames(data) <- gsub(" ", "_", colnames(data))
-# Normalize column names by removing extra underscores and spaces
-colnames(data) <- gsub("_+", "_", colnames(data))  # Replace multiple underscores with a single one
+colnames(data) <- gsub("_+", "_", colnames(data))  
 colnames(data) <- gsub("_$", "", colnames(data))   # Remove trailing underscores
 colnames(data) <- gsub("^_", "", colnames(data))   # Remove leading underscores
 colnames(data) <- gsub(" ", "_", colnames(data))   # Replace spaces with single underscores
@@ -83,12 +86,36 @@ colnames(data)[colnames(data) == "ԸԼՆ._Հանքայնացում_._մգ/լ."] 
 colnames(data)[colnames(data) == "Տեսակարար_էլեկտրահաղորդականություն._Միկրոսիմ./սմ2"] <- "EC_microS_cm"
 colnames(data)[colnames(data) == "Կոշտություն,_մգ-էկվ/լ"] <- "Hardness"
 colnames(data)[colnames(data) == "Կախված_մասնիկներ._մգ/լ"] <- "Suspended_Solids"
-
-# Display the updated column names
-print(colnames(data))
-
-head(data)
 ```
+
+```{r}
+print(colnames(data))
+```
+```{r}
+data[ , 7:45] <- lapply(data[ , 7:45], function(x) {
+  x <- gsub("<0.001", "0", x) 
+  suppressWarnings(as.numeric(x))  
+})
+
+data[ , 7:45] <- lapply(data[ , 7:45], function(x) replace(x, is.na(x), 0))
+```
+
+```{r}
+str(data)
+```
+
+
+```{r}
+data$Date <- as.Date(data$Date)
+data$Sampling_Time <- format(data$Sampling_Time, "%H:%M")
+data$DateTime <- as.POSIXct(paste(data$Date, data$Sampling_Time), format = "%Y-%m-%d %H:%M", tz = "UTC")
+```
+
+```{r}
+sum(is.na(data$Date))
+sum(is.na(data$Sampling_Time))
+```
+
 
 ```{r}
 # Remove rows with missing 'Date'
