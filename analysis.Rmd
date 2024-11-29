@@ -91,6 +91,7 @@ colnames(data)[colnames(data) == "Կախված_մասնիկներ._մգ/լ"] <- 
 ```{r}
 print(colnames(data))
 ```
+
 ```{r}
 data[ , 7:45] <- lapply(data[ , 7:45], function(x) {
   x <- gsub("<0.001", "0", x) 
@@ -100,15 +101,14 @@ data[ , 7:45] <- lapply(data[ , 7:45], function(x) {
 data[ , 7:45] <- lapply(data[ , 7:45], function(x) replace(x, is.na(x), 0))
 ```
 
-```{r}
-str(data)
-```
-
 
 ```{r}
 data$Date <- as.Date(data$Date)
 data$Sampling_Time <- format(data$Sampling_Time, "%H:%M")
-data$DateTime <- as.POSIXct(paste(data$Date, data$Sampling_Time), format = "%Y-%m-%d %H:%M", tz = "UTC")
+```
+
+```{r}
+str(data)
 ```
 
 ```{r}
@@ -116,51 +116,142 @@ sum(is.na(data$Date))
 sum(is.na(data$Sampling_Time))
 ```
 
-
 ```{r}
-# Remove rows with missing 'Date'
-data_cleaned <- data %>% filter(!is.na(Date))
-
-# Replace missing 'Sampling_Time' with "00:00:00"
-data_cleaned <- data_cleaned %>%
-  mutate(Sampling_Time = ifelse(is.na(Sampling_Time), "00:00:00", Sampling_Time))
-
-# Combine 'Date' and 'Sampling_Time' into a single Datetime column
-data_cleaned <- data_cleaned %>%
-  mutate(Datetime = as.POSIXct(paste(Date, Sampling_Time), format = "%Y-%m-%d %H:%M:%S"))
-
-# List of columns to convert to numeric
-columns_to_convert <- c(
-  "Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO2", "NO3", "PO4", "Zn",
-  "Cu", "Cr", "As", "Cd", "Pb", "Ni", "Mo", "Mn", "V", "Co", "Fe", "Ca",
-  "Mg", "Ba", "Be", "K", "Na", "B", "Al", "Sb", "Sn", "Total_Inorganic_N",
-  "P", "Cl", "Si", "Hardness", "Suspended_Solids", "TDS"
-)
-
-# Convert specified columns to numeric
-data_cleaned[columns_to_convert] <- lapply(data_cleaned[columns_to_convert], function(column) {
-  # Replace non-numeric values (e.g., "<0.01") with NA before conversion
-  column <- gsub("[^0-9.Ee-]", "", column)  # Remove non-numeric characters
-  as.numeric(column)  # Convert to numeric
-})
-
+data$Sampling_Time[12] <- "10:00"
+data$Sampling_Time[41] <- "11:00"
+data$Sampling_Time[73] <- "11:40"
+data$Sampling_Time[106] <- "12:30"
+data$Sampling_Time[127] <- "14:15"
+data$Sampling_Time[137] <- "16:30"
+data$Sampling_Time[168] <- "10:30"
+data$Sampling_Time[201] <- "12:30"
+data$Sampling_Time[221] <- "14:30"
+data$Sampling_Time[252] <- "15:00"
+data$Sampling_Time[266] <- "17:30"
+data$Sampling_Time[284] <- "16:00"
+data$Sampling_Time[314] <- "15:30"
+data$Sampling_Time[347] <- "14:40"
+data$Sampling_Time[441] <- "13:00"
+data$Sampling_Time[498] <- "14:40"
+data$Sampling_Time[512] <- "14:20"
+data$Sampling_Time[1041] <- "10:00"
+data$Sampling_Time[1073] <- "13:00"
+data$Sampling_Time[1101] <- "13:30"
+data$Sampling_Time[1143] <- "14:30"
+data$Sampling_Time[1149] <- "12:00"
+data$Sampling_Time[1174] <- "15:30"
+data$Sampling_Time[1180] <- "10:30"
+data$Sampling_Time[1194] <- "19:00"
+data$Sampling_Time[1219] <- "16:30"
+data$Sampling_Time[1225] <- "18:00"
+data$Sampling_Time[1239] <- "17:00"
+data$Sampling_Time[1260] <- "13:30"
+data$Sampling_Time[1266] <- "16:00"
+data$Sampling_Time[1280] <- "15:00"
+data$Sampling_Time[1306] <- "14:00"
+data$Sampling_Time[1312] <- "14:00"
+data$Sampling_Time[1338] <- "14:30"
+data$Sampling_Time[1344] <- "12:00"
+data$Sampling_Time[1370] <- "15:00"
+data$Sampling_Time[1376] <- "11:30"
+data$Sampling_Time[1383] <- "09:20"
+data$Sampling_Time[1409] <- "17:30"
+data$Sampling_Time[1415] <- "10:30"
+data$Sampling_Time[1424] <- "10:30"
+data$Sampling_Time[1434] <- "11:20"
+data$Sampling_Time[1452] <- "16:30"
+data$Sampling_Time[1473] <- "15:30"
+data$Sampling_Time[1494] <- "15:00"
+data$Sampling_Time[1515] <- "12:30"
+data$Sampling_Time[1538] <- "12:30"
+data$Sampling_Time[1561] <- "13:30"
+data$Sampling_Time[1584] <- "15:00"
+data$Sampling_Time[1608] <- "15:40"
+data$Sampling_Time[1631] <- "13:30"
+data$Sampling_Time[1655] <- "13:00"
+data$Sampling_Time[1680] <- "11:00"
+data$Sampling_Time[1706] <- "11:30"
+data$Sampling_Time[1720] <- "17:30"
+data$Sampling_Time[1743] <- "16:30"
+data$Sampling_Time[1767] <- "12:30"
+data$Sampling_Time[1792] <- "14:30"
+data$Sampling_Time[1816] <- "14:00"
+data$Sampling_Time[1830] <- "16:00"
+data$Sampling_Time[1853] <- "17:30"
+data$Sampling_Time[1875] <- "12:30"
+data$Sampling_Time[1897] <- "13:30"
+data$Sampling_Time[1991] <- "16:00"
+data$Sampling_Time[2008] <- "10:30"
+data$Sampling_Time[2011] <- "12:00"
+data$Sampling_Time[2109] <- "16:40"
+data$Sampling_Time[2115] <- "12:00"
+data$Sampling_Time[2135] <- "09:30"
+data$Sampling_Time[2209] <- "11:00"
+data$Sampling_Time[2237] <- "17:30"
+data$Sampling_Time[2270] <- "11:00"
+data$Sampling_Time[2294] <- "12:30"
+data$Sampling_Time[2304] <- "10:00"
+data$Sampling_Time[2306] <- "18:00"
+data$Sampling_Time[2335] <- "10:10"
+data$Sampling_Time[2337] <- "18:02"
+data$Sampling_Time[2366] <- "10:30"
+data$Sampling_Time[2368] <- "18:06"
+data$Sampling_Time[2397] <- "10:40"
+data$Sampling_Time[2399] <- "18:10"
+data$Sampling_Time[2428] <- "10:50"
+data$Sampling_Time[2430] <- "18:12"
+data$Sampling_Time[2458] <- "11:00"
+data$Sampling_Time[2460] <- "18:14"
+data$Sampling_Time[2490] <- "10:20"
+data$Sampling_Time[2492] <- "18:04"
+data$Sampling_Time[2498] <- "09:00"
+data$Sampling_Time[2530] <- "09:15"
+data$Sampling_Time[2562] <- "09:50"
+data$Sampling_Time[2595] <- "10:30"
+data$Sampling_Time[2626] <- "10:30"
+data$Sampling_Time[2658] <- "09:30"
+data$Sampling_Time[2690] <- "07:34"
+data$Sampling_Time[2722] <- "11:00"
+data$Sampling_Time[2754] <- "11:15"
 ```
 
 ```{r}
-threshold <- 1e-10  # Define a threshold for small values
-# Replace very small values (absolute values less than threshold) with 0
-data_cleaned[columns_to_convert] <- lapply(data_cleaned[columns_to_convert], function(x) {
+data$Sampling_Time[is.na(data$Sampling_Time)] <- "00:00"
+```
+
+```{r}
+sum(is.na(data$Sampling_Time))
+```
+
+```{r}
+data <- data %>%
+  filter(!is.na(Date))
+```
+
+```{r}
+data$DateTime <- as.POSIXct(paste(data$Date, data$Sampling_Time), format = "%Y-%m-%d %H:%M", tz = "UTC")
+```
+
+```{r}
+str(data)
+```
+
+
+```{r}
+threshold <- 1e-10 
+
+data_cleaned <- data
+
+data_cleaned[, 7:45] <- lapply(data_cleaned[, 7:45], function(x) {
   if (is.numeric(x)) {
-    x[abs(x) < threshold] <- 0
+    x[abs(x) < threshold] <- 0  
   }
-  return(x)
+  return(x) 
 })
 ```
 
 ```{r}
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
-str(data_cleaned)
-
 ```
 
 **Exploratory Data Analysis (EDA)**
