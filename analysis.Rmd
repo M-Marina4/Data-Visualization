@@ -18,6 +18,7 @@ library(ggcorrplot)
 library(FactoMineR)
 library(factoextra)
 library(pheatmap)
+
 ```
 
 ```{r}
@@ -42,7 +43,7 @@ ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
 ```
 ```{r}
 # Temporal Trends - Dissolved Oxygen Over Time
-ggplot(data_cleaned, aes(x = Datetime, y = Dissolved_Oxygen)) +
+ggplot(data_cleaned, aes(x = DateTime, y = Dissolved_Oxygen)) +
   geom_line(color = "blue") +
   labs(title = "Dissolved Oxygen Over Time", x = "Date", y = "Dissolved Oxygen (mg/L)")
 ```
@@ -54,7 +55,7 @@ ggplot(data_cleaned, aes(x = Datetime, y = Dissolved_Oxygen)) +
 
 ```{r}
 # Time Series for BOD5 and COD
-ggplot(data_cleaned, aes(x = Datetime)) +
+ggplot(data_cleaned, aes(x = DateTime)) +
   geom_line(aes(y = BOD5, color = "BOD5")) +
   geom_line(aes(y = COD, color = "COD")) +
   labs(title = "Temporal Trends of BOD5 and COD", x = "Datetime", y = "Concentration (mg/L)") +
@@ -114,40 +115,52 @@ fviz_pca_var(data_pca, col.var = "black")
 **Clustering**
 
 ```{r}
-# Step 1: Prepare data for clustering
 # Use scaled numeric data from the PCA section for clustering
 data_for_clustering <- numeric_data_scaled
 
-
 # Step 2: K-means Clustering
 set.seed(123)  # For reproducibility
+fviz_nbclust(data_for_clustering, FUNcluster = factoextra::hcut,
+method = "wss")
 
-# Determine the optimal number of clusters using the Elbow Method
-wss <- sapply(1:10, function(k) {
-  kmeans(data_for_clustering, centers = k, nstart = 25)$tot.withinss
-})
+```
 
-# Plot the Elbow Method
-plot(1:10, wss, type = "b", pch = 19, frame = FALSE,
-     xlab = "Number of Clusters",
-     ylab = "Total Within-Cluster Sum of Squares",
-     main = "Elbow Method for Optimal Clusters")
+```{r}
+fviz_nbclust(data_for_clustering, kmeans, method = "wss") +
+labs(title = "K-means Scree Plot")
 
-# Apply K-means clustering with an optimal number of clusters (e.g., 3)
-kmeans_result <- kmeans(data_for_clustering, centers = 3, nstart = 25)
+```
+```{r}
+# Apply K-means clustering
+set.seed(123)
+optimal_k <- 3  # Based on the elbow plot
+kmeans_result <- kmeans(data_for_clustering, centers = optimal_k, nstart = 25)
 
 # Add cluster labels to the original data
 data_cleaned$Cluster <- as.factor(kmeans_result$cluster)
 
-
+# Create a scatter plot using two selected columns
+ggplot(data_cleaned, aes(x = Dissolved_Oxygen, y = BOD5, color = Cluster)) +
+  geom_point(size = 3, alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "K-means Clustering Visualization",
+    x = "Dissolved Oxygen (mg/L)",
+    y = "BOD5 (mg/L)",
+    color = "Cluster"
+  ) +
+  scale_color_brewer(palette = "Set2")
 
 ```
+
+
 ```{r}
+# Step 3: Hierarchical Clustering
 # Compute dissimilarity matrix
 dist_matrix <- dist(data_for_clustering, method = "euclidean")
 
 # Perform hierarchical clustering
-hclust_result <- hclust(dist_matrix, method="complete")
+hclust_result <- hclust(dist_matrix, method = "ward.D2")
 
 # Plot the dendrogram
 plot(hclust_result, labels = FALSE, hang = -1,
@@ -161,11 +174,7 @@ hclust_clusters <- cutree(hclust_result, k = 3)
 # Add hierarchical clustering labels to the original data
 data_cleaned$HCluster <- as.factor(hclust_clusters)
 
-# Visualize heatmap with hierarchical clustering
-pheatmap(data_for_clustering, cluster_rows = hclust_result, cluster_cols = FALSE,
-         main = "Heatmap with Hierarchical Clustering")
 ```
-
 
 
 
