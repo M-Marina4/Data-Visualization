@@ -22,7 +22,14 @@ library(pheatmap)
 
 ```{r}
 data_cleaned <- read.csv("cleaned_water_data.csv")
+coordinates <- read.csv("coordinates.csv")
 ```
+
+Hypothesis 1: There is a spatial correlation between water quality indicators (e.g., BOD5, COD) and the geographic location (X, Y coordinates) of the sampling stations.
+
+
+
+
 
 
 **Exploratory Data Analysis (EDA)**

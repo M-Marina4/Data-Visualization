@@ -254,3 +254,20 @@ data_cleaned[, 7:45] <- lapply(data_cleaned[, 7:45], function(x) {
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 ```
 
+```{r}
+file_path <- "Coordinates.xlsx"
+df <- read_excel(file_path)
+```
+
+
+```{r}
+colnames(df) <- c("River_Basin_Area", "Water_Object", "Station_Number", 
+                                " Station_Location", "Opening_Year", "Monitoring_Type", 
+                                "Longitude_Original", "Latitude_Original", "Longitude", "Latitude")
+
+```
+
+```{r}
+write.csv(df, "coordinates.csv", row.names = FALSE)
+```
+
