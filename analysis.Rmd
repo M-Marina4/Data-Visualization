@@ -9,9 +9,11 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(dplyr)
+library(sf)
 library(ggplot2)
 library(corrplot)
 library(lubridate)
+library(systemfonts)
 library(GGally)
 library(knitr)
 library(ggcorrplot)
@@ -26,7 +28,98 @@ data_cleaned <- read.csv("cleaned_water_data.csv")
 coordinates <- read.csv("coordinates.csv")
 ```
 
+
+```{r}
+station_counts <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n())%>%
+  arrange(desc(Number_of_Stations))
+```
+```{r}
+top_bottom_counts <- bind_rows(
+  head(station_counts, 5), 
+  tail(station_counts, 5)  
+)
+
+top_bottom_counts
+```
+
+```{r}
+ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
+  labs(
+    title = "Number of Sampling Stations per Water Object",
+    subtitle = "Visualizing the distribution of stations across various water objects",
+    x = "Water Object",
+    y = "Number of Stations"
+  ) +
+  theme_classic(base_family = "Arial Unicode MS") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5, family = "Arial Unicode MS"), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5, family = "Arial Unicode MS"),
+    axis.text.x = element_text(angle = 90, hjust = 1, family = "Arial Unicode MS"),
+  )
+
+```
+```{r}
+arm_sf <- st_read('Armenia_Marzes/Armenia_Marzes.shp', quiet = TRUE) 
+```
+
+```{r}
+arm_df <- arm_sf %>% group_by(MarzID) %>%
+  st_cast("POINT")
+arm_df = data.frame(Marz = arm_df$Name_Eng, st_coordinates(arm_df))
+```
+
+
+```{r}
+ggplot(arm_df, aes(x = X, y = Y, group = Marz)) +
+  geom_polygon(fill = 'white', color = 'black') + coord_fixed()+ theme_void()
+```
+```{r}
+coordinates_data_cleaned <- coordinates %>%
+  filter(!is.na(as.numeric(Latitude)) & !is.na(as.numeric(Longitude))) %>%
+  mutate(
+    Latitude = as.numeric(Latitude),
+    Longitude = as.numeric(Longitude)
+  )
+```
+
+
+
+```{r}
+# region_counts <- coordinates_data_cleaned %>%
+#   group_by(Region) %>%
+#   summarise(Number_of_Stations = n())
+# 
+# arm_sf <- arm_sf %>%
+#   left_join(region_counts, by = c("Name_Eng" = "Region"))
+# 
+# 
+# ggplot(data = arm_sf) +
+#   geom_sf(aes(fill = Number_of_Stations), color = "black") +
+#   scale_fill_gradient(low = "lightblue", high = "darkblue", na.value = "grey") +
+#   labs(
+#     title = "Regional Distribution of Water Monitoring Stations",
+#     fill = "Number of Stations",
+#     x = "",
+#     y = ""
+#   ) +
+#   theme_void() +
+#   theme(
+#     plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+#     legend.position = "right"
+#   )
+```
+
+
+
+
+
+
+
 Hypothesis 1: There is a spatial correlation between water quality indicators (e.g., BOD5, COD) and the geographic location (X, Y coordinates) of the sampling stations.
+
 
 
 

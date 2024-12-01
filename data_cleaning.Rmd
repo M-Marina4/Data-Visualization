@@ -251,6 +251,11 @@ data_cleaned[, 7:45] <- lapply(data_cleaned[, 7:45], function(x) {
 ```
 
 ```{r}
+missing_summary <- data_cleaned %>%
+  summarise_all(~ sum(is.na(.)))
+```
+
+```{r}
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 ```
 
@@ -266,6 +271,7 @@ colnames(df) <- c("River_Basin_Area", "Water_Object", "Station_Number",
                                 "Longitude_Original", "Latitude_Original", "Longitude", "Latitude")
 
 ```
+
 
 ```{r}
 write.csv(df, "coordinates.csv", row.names = FALSE)
