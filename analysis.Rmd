@@ -20,12 +20,15 @@ library(ggcorrplot)
 library(FactoMineR)
 library(factoextra)
 library(pheatmap)
-
+library(reshape2)
+library(spdep)      # For Moran's I and spatial weights
+library(spatstat)   # For Ripley's K-function
 ```
 
 ```{r}
 data_cleaned <- read.csv("cleaned_water_data.csv")
 coordinates <- read.csv("coordinates.csv")
+
 ```
 
 
@@ -62,7 +65,7 @@ ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = N
 
 ```
 ```{r}
-arm_sf <- st_read('Armenia_Marzes/Armenia_Marzes.shp', quiet = TRUE) 
+arm_sf <- st_read('Armenia_Marzes.shp', quiet = TRUE) 
 ```
 
 ```{r}
@@ -134,26 +137,12 @@ ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
   geom_histogram(binwidth = 1, fill = "blue", color = "black") +
   labs(title = "Distribution of Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "Frequency")
 ```
-```{r}
-# Temporal Trends - Dissolved Oxygen Over Time
-ggplot(data_cleaned, aes(x = DateTime, y = Dissolved_Oxygen)) +
-  geom_line(color = "blue") +
-  labs(title = "Dissolved Oxygen Over Time", x = "Date", y = "Dissolved Oxygen (mg/L)")
-```
 
 
 **Outlier Detection**
 
 **Time Series Analysis**
 
-```{r}
-# Time Series for BOD5 and COD
-ggplot(data_cleaned, aes(x = DateTime)) +
-  geom_line(aes(y = BOD5, color = "BOD5")) +
-  geom_line(aes(y = COD, color = "COD")) +
-  labs(title = "Temporal Trends of BOD5 and COD", x = "Datetime", y = "Concentration (mg/L)") +
-  scale_color_manual(values = c("BOD5" = "green", "COD" = "orange"))
-```
 
 **Correlation Analysis**
 
@@ -211,7 +200,6 @@ fviz_pca_var(data_pca, col.var = "black")
 # Use scaled numeric data from the PCA section for clustering
 data_for_clustering <- numeric_data_scaled
 
-# Step 2: K-means Clustering
 set.seed(123)  # For reproducibility
 fviz_nbclust(data_for_clustering, FUNcluster = factoextra::hcut,
 method = "wss")
@@ -299,5 +287,103 @@ ggplot(filtered_data, aes(x = River_Basin, y = Dissolved_Oxygen, fill = River_Ba
 
 
 ```
+#Correlation Heatmap
+
+```{r}
+# Filter only key numeric columns for correlation analysis
+selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
+filtered_data <- data[selected_columns]
+
+# Compute the correlation matrix
+cor_matrix_filtered <- cor(filtered_data, use = "complete.obs")
+
+# Plot the correlation heatmap
+library(ggcorrplot)
+ggcorrplot(
+  cor_matrix_filtered,
+  lab = TRUE, # Show correlation values
+  type = "lower", # Show only the lower triangle
+  colors = c("blue", "white", "red"), # Color scale
+  title = "Clean Correlation Heatmap of Selected Water Quality Parameters",
+  outline.color = "black",
+  tl.cex = 0.8 # Adjust text size for better readability
+)
+```
+The variables selected for the correlation heatmap are chosen based on their importance in understanding water quality and their interrelation in assessing environmental and ecological conditions. Here’s an explanation of why these specific variables are included and what they reveal:
+
+Strong Positive Correlations:
+
+BOD5 and COD (0.88): These are both measures of organic pollution, indicating they often increase together in polluted environments.
+COD and NH4 (0.77): Indicates that chemical pollution (COD) is often associated with higher ammonium levels, likely due to organic matter decomposition.
+TDS and Suspended Solids (0.66): Suggests that higher dissolved solids are often found alongside particulate matter, reflecting general water pollution.
+Moderate Correlations:
+
+TDS and Metals (e.g., Zn 0.44): Dissolved solids include metal ions, showing a direct connection between TDS and metal pollution levels.
+Weak or Negative Correlations:
+
+DO and NH4 (-0.13): Dissolved oxygen decreases slightly as ammonium levels increase, reflecting oxygen consumption during ammonium nitrification.
+DO and BOD5 (-0.32): Dissolved oxygen decreases with higher organic pollution, consistent with oxygen demand from organic matter decomposition.
+Key Insights:
+Organic and chemical pollution indicators (BOD5, COD, NH4) are closely interrelated, highlighting sources like sewage or industrial discharge.
+Suspended solids and TDS are linked to overall water pollution, potentially including heavy metals.
+Dissolved oxygen is negatively impacted by pollution, affecting aquatic life.
 
 
+
+#Trend analysis for different metals
+
+```{r}
+# Trend analysis for different metals
+metals <- c("Zn", "Cu", "Cr", "As", "Cd", "Pb")
+metal_data <- data_cleaned %>% select(Date, all_of(metals)) %>% melt(id.vars = "Date")
+
+ggplot(metal_data, aes(x = Date, y = value, color = variable)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Trend Analysis of Metal Concentrations Over Time", x = "Date", y = "Concentration") +
+  facet_wrap(~variable, scales = "free_y")
+  labs(title = "Histogram of Suspended Solids", x = "Suspended Solids", y = "Frequency")
+```
+
+```{r}
+# Load the shapefile of Armenia
+armenia_map <- st_read("Armenia_Marzes.shp")
+
+# Load the coordinates dataset
+coordinates <- read.csv("coordinates.csv")
+
+# Step 1: Clean the data
+# Convert Longitude and Latitude to numeric, coercing invalid values to NA
+coordinates$Longitude <- as.numeric(coordinates$Longitude)
+coordinates$Latitude <- as.numeric(coordinates$Latitude)
+
+# Filter out rows with NA in the River_Basin_Area column
+coordinates_clean <- coordinates_clean %>%
+  filter(!is.na(River_Basin_Area))
+
+# Create an sf object for the monitoring stations
+stations_sf <- st_as_sf(coordinates_clean, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Plot monitoring stations on Armenia's map without NA
+ggplot() +
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +
+  geom_sf(data = stations_sf, aes(color = River_Basin_Area), size = 2) +
+  scale_color_viridis_d() +
+  labs(title = "Monitoring Stations Across Armenia", color = "River Basin Area") +
+  theme_minimal()
+
+
+```
+```{r}
+sum(is.na(coordinates$Longitude))
+sum(is.na(coordinates$Latitude))
+range(coordinates_clean$Longitude)  # Should return a valid numeric range
+range(coordinates_clean$Latitude)   # Should return a valid numeric range
+# Identify non-numeric Longitude and Latitude entries
+non_numeric_long <- coordinates_clean[is.na(as.numeric(coordinates_clean$Longitude)), ]
+non_numeric_lat <- coordinates_clean[is.na(as.numeric(coordinates_clean$Latitude)), ]
+
+# Print problematic rows
+print(non_numeric_long)
+print(non_numeric_lat)
+```

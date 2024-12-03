@@ -261,7 +261,9 @@ write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 
 ```{r}
 file_path <- "Coordinates.xlsx"
+
 df <- read_excel(file_path)
+
 ```
 
 
