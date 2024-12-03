@@ -24,6 +24,8 @@ library(reshape2)
 library(spdep)      # For Moran's I and spatial weights
 library(spatstat)   # For Ripley's K-function
 library(viridis)
+library(ggpubr)
+library(ggcorrplot)
 ```
 
 ```{r}
@@ -298,8 +300,6 @@ filtered_data <- data[selected_columns]
 # Compute the correlation matrix
 cor_matrix_filtered <- cor(filtered_data, use = "complete.obs")
 
-# Plot the correlation heatmap
-library(ggcorrplot)
 ggcorrplot(
   cor_matrix_filtered,
   lab = TRUE, # Show correlation values
@@ -546,5 +546,90 @@ The plot highlights clusters of monitoring stations in specific areas.
 Areas with high density (yellow regions) indicate regions of priority or interest, such as major water bodies(Sevan) or industrial areas.
 
 
+```{r}
+# Enhanced scatter plot with colors
+ggscatter(
+  data_cleaned,
+  x = "Suspended_Solids",
+  y = "Dissolved_Oxygen",
+  add = "reg.line",
+  conf.int = TRUE, 
+  cor.coef = TRUE,
+  cor.method = "pearson", 
+  xlab = "Total Suspended Solids (mg/L)",
+  ylab = "Dissolved Oxygen (mg/L)",
+  title = "Relationship Between Total Suspended Solids and Dissolved Oxygen",
+  color = "Suspended_Solids"
+) +
+  scale_color_viridis_c(
+    option = "C",                          
+    name = "TSS (mg/L)"                    
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(
+      face = "bold", size = 14, hjust = 0.5, color = "#2c3e50"
+    ), 
+    axis.title = element_text(
+      size = 14, face = "bold", color = "#34495e"
+    ),
+    axis.text = element_text(size = 12, color = "#34495e"),
+    panel.grid.major = element_line(color = "#ecf0f1"), 
+    panel.grid.minor = element_blank(), 
+    legend.position = "right", 
+    legend.title = element_text(face = "bold", color = "#2c3e50"),
+    legend.key = element_rect(fill = "white")
+  )
 
+
+```
+The weak negative correlation (R=−0.041) suggests that, generally, higher concentrations of Total Suspended Solids are associated with slightly lower Dissolved Oxygen levels.
+
+Significance:
+Despite the weak correlation, the significant p-value (p=0.034) indicates that the relationship is statistically meaningful, but the effect size is small. Other factors likely contribute to variations in DO.
+
+```{r}
+coordinates$Station_Number <- as.character(coordinates$Station_Number)
+data_cleaned$Station_Number <- as.character(data_cleaned$Station_Number)
+
+```
+
+
+#Hypothesis 2: Dominance of Specific Water Objects
+##Hypothesis: Certain water objects (e.g., major rivers or lakes) account for the majority of water monitoring stations due to their importance in water management.
+```{r}
+
+# Step 1: Group by Water_Object and count the number of stations
+water_object_summary <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n()) %>%
+  arrange(desc(Number_of_Stations))  # Sort by descending number of stations
+
+# Step 2: Limit to Top N Water Objects for readability (e.g., top 20)
+top_water_objects <- water_object_summary %>%
+  top_n(20, Number_of_Stations)
+
+# Step 3: Create a beautiful bar plot with further adjustments for x-axis labels
+ggplot(top_water_objects, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations, fill = Number_of_Stations)) +
+  geom_bar(stat = "identity", show.legend = FALSE, alpha = 0.9) +  # Bar chart
+  scale_fill_viridis_c(option = "C") +  # Color gradient for bars
+  labs(
+    title = "Dominance of Specific Water Objects",
+    subtitle = "Top 20 water objects by the number of monitoring stations",
+    x = "Water Object",
+    y = "Number of Monitoring Stations"
+  ) +
+  theme_minimal(base_size = 14) +  # Modern minimal theme
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5, color = "#2c3e50"),
+    plot.subtitle = element_text(size = 14, hjust = 0.5, color = "#34495e"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),  # Increase angle and adjust alignment
+    axis.text.y = element_text(size = 12),
+    axis.title = element_text(size = 14, face = "bold"),
+    panel.grid.major = element_line(color = "#ecf0f1"),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(20, 20, 20, 50)  # Increase left margin for better label spacing
+  )
+
+```
 
