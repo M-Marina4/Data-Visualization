@@ -23,6 +23,7 @@ library(pheatmap)
 library(reshape2)
 library(spdep)      # For Moran's I and spatial weights
 library(spatstat)   # For Ripley's K-function
+library(viridis)
 ```
 
 ```{r}
@@ -344,6 +345,8 @@ ggplot(metal_data, aes(x = Date, y = value, color = variable)) +
   facet_wrap(~variable, scales = "free_y")
   labs(title = "Histogram of Suspended Solids", x = "Suspended Solids", y = "Frequency")
 ```
+#Hypothesis 6: Spatial Clustering of Stations
+##Hypothesis: Water monitoring stations are spatially clustered rather than evenly distributed across the country.
 
 ```{r}
 # Load the shapefile of Armenia
@@ -387,3 +390,161 @@ non_numeric_lat <- coordinates_clean[is.na(as.numeric(coordinates_clean$Latitude
 print(non_numeric_long)
 print(non_numeric_lat)
 ```
+
+```{r}
+# Convert Longitude and Latitude to numeric
+coordinates_clean <- coordinates %>%
+  mutate(
+    Longitude = as.numeric(Longitude),
+    Latitude = as.numeric(Latitude)
+  ) %>%
+  filter(!is.na(Longitude) & !is.na(Latitude))  # Remove rows with NA in coordinates
+
+# Check for duplicates and remove them
+coordinates_clean <- coordinates_clean %>%
+  distinct(Longitude, Latitude, .keep_all = TRUE)
+
+# Verify the ranges are valid
+print(range(coordinates_clean$Longitude, na.rm = TRUE))
+print(range(coordinates_clean$Latitude, na.rm = TRUE))
+
+```
+
+```{r}
+# Transform Armenia map and stations to the same CRS
+armenia_map <- st_transform(armenia_map, crs = 32638)  # EPSG: 32638 is UTM zone 38N
+stations_sf <- st_as_sf(coordinates_clean, coords = c("Longitude", "Latitude"), crs = 4326)
+stations_sf <- st_transform(stations_sf, crs = st_crs(armenia_map))
+```
+
+```{r}
+# Ensure Moran's I input is correct
+coords_matrix <- st_coordinates(stations_sf)  # Extract numeric coordinates
+nb <- knn2nb(knearneigh(coords_matrix, k = 5))  # Create nearest neighbors
+listw <- nb2listw(nb, style = "W")  # Create spatial weights
+
+# Compute Moran's I (for example, on Longitude or Latitude)
+moran_test <- moran.test(coordinates_clean$Longitude, listw)
+print(moran_test)
+```
+###Why Moran's I Test is Used
+Moran's I is a statistical measure of spatial autocorrelation. It quantifies the degree to which a spatial variable is correlated with itself across space. It helps answer whether nearby spatial units (in this case, monitoring stations) tend to have similar values (clustering) or dissimilar values (dispersion).
+
+###Purpose in Spatial Analysis:
+Test whether water monitoring stations are spatially clustered (positive autocorrelation), randomly distributed (no autocorrelation), or dispersed (negative autocorrelation).
+
+###Analysis of the Results
+Moran I Statistic:
+
+Value: 0.9679 (close to 1).
+Interpretation: Strong positive spatial autocorrelation, indicating that water monitoring stations are spatially clustered.
+p-value:
+
+Value: < 2.2e-16 (very low).
+Interpretation: The result is statistically significant, rejecting the null hypothesis of random distribution.
+Alternative Hypothesis:
+
+Greater: Indicates testing for positive spatial autocorrelation (clustering).
+
+
+```{r}
+# Load required libraries
+library(sp)
+library(maptools)
+
+# Transform Armenia map to SpatialPolygons if it is not already
+armenia_sp <- as(armenia_map, "Spatial")
+
+# Extract bounding box from the Armenia map
+bounding_box <- bbox(armenia_sp)
+
+# Convert the bounding box to a window object (owin)
+bounding_window <- as.owin(list(
+  xrange = bounding_box[1, ],
+  yrange = bounding_box[2, ]
+))
+
+```
+
+```{r}
+# Convert stations_sf to a ppp object for Ripley’s K-function
+coords_ppp <- as.ppp(st_coordinates(stations_sf), W = bounding_window)
+
+# Compute Ripley's K-function
+library(spatstat)
+k_function <- Kest(coords_ppp, correction = "border")
+
+# Plot the results
+plot(k_function, main = "Ripley's K-function Analysis")
+```
+Why Ripley's K-Function is Used
+Ripley's K-function is a spatial statistics tool used to analyze the distribution of spatial point patterns. It helps identify whether the points (e.g., monitoring stations) are clustered, randomly distributed, or regularly spaced across different spatial scales.
+
+Purpose in Spatial Analysis:
+Understand clustering patterns over different distances (r values).
+Evaluate if clustering or dispersion exists at specific spatial scales, beyond what Moran's I provides.
+
+Components of the Plot
+Black Line (Kbord(r)):
+
+Represents the observed K-function, showing the cumulative number of points within a distance r for the observed data.
+Higher values indicate clustering over increasing distances.
+Red Dashed Line (Kpois(r)):
+
+Represents the expected K-function under the null hypothesis of Complete Spatial Randomness (CSR).
+Comparison:
+
+If the black line lies above the red dashed line, it indicates clustering.
+If the black line lies below the red dashed line, it indicates dispersion.
+
+Analysis of the Results
+Clustering Indicated:
+
+The observed K-function (Kbord(r)) is consistently above the expected K-function (Kpois(r)).
+This indicates strong clustering of monitoring stations at all spatial scales analyzed (r values ranging from 0 to 70,000 meters).
+Increasing Clustering Over Distance:
+
+As the distance (r) increases, the gap between the observed K-function and the expected K-function widens.
+This suggests that clustering becomes more pronounced at larger spatial scales, potentially reflecting regional grouping of monitoring stations.
+
+
+```{r}
+
+# Plot kernel density estimation with enhancements
+ggplot() +
+  # Add Armenia's map as a base layer
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black", alpha = 0.5) +
+  # Add kernel density with enhanced color gradient
+  stat_density2d(
+    data = as.data.frame(coords_matrix),
+    aes(x = X, y = Y, fill = ..level..),
+    geom = "polygon", contour = TRUE,
+    alpha = 0.8
+  ) +
+  # Customize the fill color scale
+  scale_fill_viridis_c(option = "C", name = "Density Level") +
+  # Add labels and improve title formatting
+  labs(
+    title = "Kernel Density of Monitoring Stations in Armenia",
+    subtitle = "Visualizing spatial clustering of water monitoring stations",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  # Adjust theme for clarity
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 14),
+    legend.position = "right",
+    legend.key.height = unit(1, "cm"),
+    legend.key.width = unit(0.5, "cm")
+  )
+```
+Spatial Distribution:
+
+The plot highlights clusters of monitoring stations in specific areas.
+Areas with high density (yellow regions) indicate regions of priority or interest, such as major water bodies(Sevan) or industrial areas.
+
+
+
+
