@@ -349,6 +349,26 @@ ggplot(metal_data, aes(x = Date, y = value, color = variable)) +
 ##Hypothesis: Water monitoring stations are spatially clustered rather than evenly distributed across the country.
 
 ```{r}
+# Convert Longitude and Latitude to numeric
+coordinates_clean <- coordinates %>%
+  mutate(
+    Longitude = as.numeric(Longitude),
+    Latitude = as.numeric(Latitude)
+  ) %>%
+  filter(!is.na(Longitude) & !is.na(Latitude))  # Remove rows with NA in coordinates
+
+# Check for duplicates and remove them
+coordinates_clean <- coordinates_clean %>%
+  distinct(Longitude, Latitude, .keep_all = TRUE)
+
+# Verify the ranges are valid
+print(range(coordinates_clean$Longitude, na.rm = TRUE))
+print(range(coordinates_clean$Latitude, na.rm = TRUE))
+
+```
+
+
+```{r}
 # Load the shapefile of Armenia
 armenia_map <- st_read("Armenia_Marzes.shp")
 
@@ -389,25 +409,6 @@ non_numeric_lat <- coordinates_clean[is.na(as.numeric(coordinates_clean$Latitude
 # Print problematic rows
 print(non_numeric_long)
 print(non_numeric_lat)
-```
-
-```{r}
-# Convert Longitude and Latitude to numeric
-coordinates_clean <- coordinates %>%
-  mutate(
-    Longitude = as.numeric(Longitude),
-    Latitude = as.numeric(Latitude)
-  ) %>%
-  filter(!is.na(Longitude) & !is.na(Latitude))  # Remove rows with NA in coordinates
-
-# Check for duplicates and remove them
-coordinates_clean <- coordinates_clean %>%
-  distinct(Longitude, Latitude, .keep_all = TRUE)
-
-# Verify the ranges are valid
-print(range(coordinates_clean$Longitude, na.rm = TRUE))
-print(range(coordinates_clean$Latitude, na.rm = TRUE))
-
 ```
 
 ```{r}
@@ -598,7 +599,6 @@ data_cleaned$Station_Number <- as.character(data_cleaned$Station_Number)
 #Hypothesis 2: Dominance of Specific Water Objects
 ##Hypothesis: Certain water objects (e.g., major rivers or lakes) account for the majority of water monitoring stations due to their importance in water management.
 ```{r}
-
 # Step 1: Group by Water_Object and count the number of stations
 water_object_summary <- data_cleaned %>%
   group_by(Water_Object) %>%
