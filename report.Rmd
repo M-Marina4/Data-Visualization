@@ -76,10 +76,8 @@ The temporal coverage spans from the earliest recorded sample date (`r min(data_
 This structure ensures a comprehensive dataset, allowing in-depth analysis of water quality trends, pollution sources, and potential ecological impacts. For a detailed explanation of each column, including definitions, units, and significance, please refer to the[Column Descriptions section [http://127.0.0.1:4680/]. This section will guide readers through the dataset's attributes, offering clarity and context for subsequent analyses.
 
 \section*{\Huge Hypothesis and Analysis}
-\section*{\Huge Conclusion}
-\section*{\Huge References}
 
-The data was collected from 2716 stations for different water objects in Armenia. Samples were taken from the stations on different days starting from the beginning of 2022 until October 2024. 
+
 ```{r}
 station_counts <- data_cleaned %>%
   group_by(Water_Object) %>%
@@ -217,5 +215,11 @@ Organic and chemical pollution indicators (BOD5, COD, NH4) are closely interrela
 Suspended solids and TDS are linked to overall water pollution, potentially including heavy metals.
 Dissolved oxygen is negatively impacted by pollution, affecting aquatic life.
 
+\section*{\Huge Conclusion}
 
+\section*{\Huge References}
+
+Nalbandyan, A., Avagyan, A., & Sargsyan, G. (2011). Assessing the Quality of Water of the Araks Basin Rivers in Armenia. Environmental Science and Pollution Research. Retrieved from https://www.researchgate.net/publication/225259203_Assessing_the_Quality_of_Water_of_the_Araks_Basin_Rivers_in_Armenia
+
+The World Bank. (2024). Armenia Water Sector Overview: Strengthening the Institutional and Governance Frameworks. World Bank Group. Retrieved from https://documents1.worldbank.org/curated/en/099062424121038546/pdf/P1700301619bb50718c6b1c554e0879f1e.pdf
 
