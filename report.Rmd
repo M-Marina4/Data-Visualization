@@ -354,6 +354,10 @@ We can see that the heatmap reveals a concerning trend for Dissolved Oxygen (DO)
 **Alternative Hypothesis (H₁)**: Nutrient pollution varies significantly between river basins and seasons due to agricultural, industrial, and seasonal runoff differences.
 
 ```{r}
+data_cleaned$Season <- cut(as.numeric(format(as.Date(data_cleaned$Date), "%m")),
+                           breaks = c(0, 3, 6, 9, 12),
+                           labels = c("Winter", "Spring", "Summer", "Fall"))
+
 nutrient_summary <- data_cleaned %>%
   group_by(River_Basin, Season) %>%
   summarise(
