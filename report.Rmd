@@ -37,8 +37,8 @@ library(ggcorrplot)
 ```
 
 ```{r, echo = FALSE, warning = FALSE, include = FALSE}
-data_cleaned <- read.csv("data/processed/cleaned_water_data.csv")
-coordinates <- read.csv("data/processed/coordinates.csv")
+data_cleaned <- read.csv("./data/processed/cleaned_water_data.csv")
+coordinates <- read.csv("./data/processed/coordinates.csv")
 ```
 
 \begin{titlepage}
@@ -180,7 +180,7 @@ From the boxplot, it can be observed that the majority of water objects have rel
 To better understand the placement and distribution of the water objects and their sampling stations, it is essential to visualize them on a map. This spatial perspective will provide insights into how the stations are geographically distributed and whether the current monitoring strategy effectively covers critical water resources.
 
 ```{r, include=FALSE}
-armenia_map <- st_read("Shapefiles/Armenia_Marzes.shp")
+armenia_map <- st_read("./Shapefiles/Armenia_Marzes.shp")
 stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
 ```
 
@@ -456,17 +456,17 @@ The observed patterns—ammonium's variability, nitrate's steadiness, and phosph
 \label{subsec:cluster_analysis}
 
 \textbf{Null Hypothesis (H0)}: There are no discernible clusters or groupings among the monitoring stations based on water quality parameters.\newline
-\textbf{Distinct clusters exist among the monitoring stations, influenced by variations in water quality parameters.
+\textbf{Alternative Hypothesis (H1)}: Distinct clusters exist among the monitoring stations, influenced by variations in water quality parameters.
 
 
-First of all, we need to decide the optimal number of clusters.
+First of all, we need to decide the optimal number of clusters.\newline
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 key_variables <- data_cleaned %>%
   select(Dissolved_Oxygen, BOD5, COD, NH4, Zn, Pb, NO3, PO4)
 fviz_nbclust(key_variables, FUNcluster = factoextra::hcut,
 method = "wss")
 ```
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Scale the data
 key_variables_scaled <- scale(key_variables)
 
