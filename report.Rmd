@@ -448,7 +448,86 @@ Nutrient pollution, including nitrates, phosphates, and ammonium, is crucial for
 
 Ammonium (NH4) exhibited significant variability, with noticeable spikes in late 2023 and early 2024, likely linked to agricultural runoff during planting and harvesting seasons, industrial discharges, or untreated sewage. This irregular behavior highlights the combined impact of human activities and seasonal events. In contrast, nitrate (NO3) levels remained relatively stable, suggesting a steady input from consistent sources, such as farming. Phosphate (PO4) levels, on the other hand, were consistently low, indicating effective regulatory controls or limited sources of phosphate pollution in Armenia.
 
-The observed patterns—ammonium's variability, nitrate's steadiness, and phosphate's low levels—provide strong evidence that nutrient pollution is shaped by both anthropogenic and seasonal factors. Therefore, the null hypothesis, which assumes no temporal variability in nutrient pollution, is rejected. The alternative hypothesis, asserting the influence of human and seasonal drivers, is accepted.s
+The observed patterns—ammonium's variability, nitrate's steadiness, and phosphate's low levels—provide strong evidence that nutrient pollution is shaped by both anthropogenic and seasonal factors. Therefore, the null hypothesis, which assumes no temporal variability in nutrient pollution, is rejected. The alternative hypothesis, asserting the influence of human and seasonal drivers, is accepted.
+
+
+\textbf{Null Hypothesis (H0)}: There are no discernible clusters or groupings among the monitoring stations based on water quality parameters.\newline
+\textbf{Distinct clusters exist among the monitoring stations, influenced by variations in water quality parameters.
+
+
+First of all, we need to decide the optimal number of clusters.
+```{r}
+key_variables <- data_cleaned %>%
+  select(Dissolved_Oxygen, BOD5, COD, NH4, Zn, Pb, NO3, PO4)
+fviz_nbclust(key_variables, FUNcluster = factoextra::hcut,
+method = "wss")
+```
+```{r}
+# Scale the data
+key_variables_scaled <- scale(key_variables)
+
+# Elbow Method
+fviz_nbclust(key_variables_scaled, kmeans, method = "wss") +
+  labs(title = "Elbow Method for Optimal Clusters")
+
+
+```
+The "elbow" point, where the rate of decrease in total within-cluster sum of squares (WSS) slows significantly, is observed at 3 clusters. This suggests that adding more clusters beyond 3 does not significantly improve the compactness of the clusters.
+
+```{r}
+# Silhouette Analysis
+fviz_nbclust(key_variables_scaled, kmeans, method = "silhouette") +
+  labs(title = "Silhouette Analysis for Optimal Clusters")
+```
+
+On th other hand, the silhouette  method identifies the optimal number of clusters as 2, as the average silhouette width is maximized at this point. A higher silhouette width indicates better-defined clusters, and a drop beyond 2 suggests diminishing clustering quality.
+
+
+Now after analysing the 2 methods we need to decide which one to choose. If the focus is on achieving distinct, well-separated clusters, 2 clusters is the optimal choice (Silhouette Analysis). If the goal is to capture more variability in the data without overfitting, 3 clusters is a reasonable choice (Elbow Method).
+
+```{r}
+
+# Perform K-means clustering (4 clusters)
+set.seed(123)
+kmeans_model <- kmeans(scale(key_variables), centers = 3, nstart = 25)
+data_cleaned$Cluster <- as.factor(kmeans_model$cluster)
+
+# Run PCA
+pca_results <- PCA(key_variables, graph = FALSE)
+
+# Perform PCA on the data (assuming the numeric data is in 'data_cleaned')
+pca_results <- prcomp(key_variables[, -c(1:2)], scale. = TRUE)  # Remove non-numeric columns
+
+# Use the first two PCA dimensions for clustering
+pca_data <- as.data.frame(pca_results$x[, 1:2])  # Select the first two principal components
+
+# Perform K-means clustering
+kmeans_model <- kmeans(pca_data, centers = 3, nstart = 25)
+
+# Visualize clusters with meaningful axis labels
+fviz_cluster(
+  kmeans_model,
+  data = pca_data,  # Use PCA-transformed data
+  geom = "point",
+  ellipse.type = "convex",
+  ggtheme = theme_minimal(),
+  main = "Clustering Based on PCA: Water Quality Parameters",
+  xlab = "Principal Component 1: Pollution Intensity Gradient",
+  ylab = "Principal Component 2: Nutrient and Organic Matter Variation"
+)
+
+```
+
+From the results of the PCA and clustering analysis, it’s pretty clear that there are meaningful patterns in how monitoring stations group together based on water quality. We see three distinct clusters emerging, which tells us that the water bodies in Armenia are not all the same but are influenced by different factors, like pollution levels, nutrients, and organic matter.
+
+One cluster (the red group) stands out because it represents water bodies with consistently high pollution. This is likely tied to urban areas or industrial zones where human activity has a big impact. Then, there’s the green cluster, which seems to represent unique or outlier stations. These might be areas with sudden pollution spikes, maybe from specific events like agricultural runoff during certain times of the year. Finally, the blue group includes water bodies with lower pollution levels overall but with a lot of variability in nutrients, possibly due to natural changes like snowmelt or seasonal effects.
+
+The axes of the PCA graph also make sense when we look at them. The first axis (we called it the "Pollution Intensity Gradient") separates stations with high contamination from those with lower pollution. The second axis (about "Nutrient and Organic Matter Variation") highlights differences in things like agricultural runoff and organic material in the water.
+
+So, looking at this, it’s clear that we have real, meaningful clusters here. This means we can reject the H0 hypotethis with idea that there’s no grouping (the null hypothesis) and confidently say that there are clusters, shaped by how water quality changes across these areas. This is super important because it gives us a way to focus our efforts—like targeting areas with the worst pollution or figuring out how to handle seasonal changes better.
+
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
