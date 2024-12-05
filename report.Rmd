@@ -79,8 +79,6 @@ This structure ensures a comprehensive dataset, allowing in-depth analysis of wa
 
 **Analysis**: Distribution of Sampling Stations Across Water Objects
 
-**Hypothesis**:
-
 **Null Hypothesis (H0)**: Sampling stations are equally distributed across different water objects.
 **Alternative Hypothesis (H1)**: Sampling stations are not equally distributed across different water objects.
 
@@ -165,7 +163,6 @@ From the boxplot, it can be observed that the majority of water objects have rel
 
 To better understand the placement and distribution of the water objects and their sampling stations, it is essential to visualize them on a map. This spatial perspective will provide insights into how the stations are geographically distributed and whether the current monitoring strategy effectively covers critical water resources.
 
-
 ```{r, include=FALSE}
 armenia_map <- st_read("Armenia_Marzes.shp")
 stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
@@ -185,6 +182,9 @@ ggplot() +
     legend.position = "none" # Removes the legend
   )
 ```
+
+
+
 
 
 The bar plots presented earlier highlight the distribution of sampling stations across different water objects. These visualizations provide a clear overview of the number of stations for each water object, which is essential for understanding the scope of data collection. However, to gain a more comprehensive understanding of spatial trends and the geographical distribution of water quality monitoring sites, it is crucial to explore the data on a map. The visualization on the map will allow a further investigation of any spatial patterns and regional variations that may not be immediately apparent from the bar plots alone.
