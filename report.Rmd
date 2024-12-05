@@ -77,8 +77,16 @@ This structure ensures a comprehensive dataset, allowing in-depth analysis of wa
 
 \section*{\Huge Hypothesis and Analysis}
 
+**Analysis**: Distribution of Sampling Stations Across Water Objects
 
-```{r}
+**Hypothesis**:
+
+**Null Hypothesis (H0)**: Sampling stations are equally distributed across different water objects.
+**Alternative Hypothesis (H1)**: Sampling stations are not equally distributed across different water objects.
+
+First, we examine the distribution of sampling stations across several water objects to understand the representativeness of the dataset. This allows us to identify if some water objects are over or under represented and subsequently can influence future analyses. We can get some initial insights into the balance of the dataset by visualizing the distribution and then summarizing the top and bottom water objects by the number of stations.
+
+```{r, include=FALSE}
 station_counts <- data_cleaned %>%
   group_by(Water_Object) %>%
   summarise(Number_of_Stations = n())%>%
@@ -86,7 +94,7 @@ station_counts <- data_cleaned %>%
 total_stations <- station_counts %>% summarise(Total_Stations = sum(Number_of_Stations))
 ```
 
-```{r}
+```{r, include=FALSE}
 top_bottom_counts <- bind_rows(
   head(station_counts, 5), 
   tail(station_counts, 5)  
@@ -94,7 +102,7 @@ top_bottom_counts <- bind_rows(
 # top_bottom_counts
 ```
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
   geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
   labs(
@@ -111,14 +119,16 @@ ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = N
   )
 ```
 
-
 There is a significant variation between the number of stations throughout the water objects. For a better understanding, 5 water objects with the most number of stations are filtered.  
-```{r}
-#Further analysis of the water objects with the most stations
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Further analysis of the water objects with the most stations
 top_5 <- head(station_counts, 5)
+
+# Create the plot
 ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
-  geom_col(fill = "steelblue", color = "black", width = 0.7) +
-  geom_text(aes(label = Number_of_Stations), vjust = -0.5, size = 4) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
+  geom_label(aes(label = Number_of_Stations), vjust = 0.5, size = 4) + 
   labs(
     title = "Top 5 Water Objects by Sampling Stations",
     x = "Water Object",
@@ -127,32 +137,56 @@ ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_
   theme_classic() +
   theme(
     plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
-    plot.subtitle = element_text(size = 12, hjust = 0.5),
     axis.text.x = element_text(angle = 90, hjust = 1)
   )
 
 ```
-The water objects with the most number of stations are Big and Small Sevans, Hrazdan, Pambak and Qasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
+The water objects with the most number of stations are Great and Small Sevans, Hrazdan, Pambak and Qasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
+
+```{r, include=FALSE}
+station_counts_1 <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(station_counts_1, aes(y = Number_of_Stations)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  theme_classic() +
+  labs(
+    title = "Statistical Distribution of Station Counts Across Water Objects",
+    y = "Number of Stations",
+    x = ""
+  ) +
+  theme(axis.text.x = element_blank())
+```
+
+From the boxplot, it can be observed that the majority of water objects have relatively few monitoring stations, as indicated by the clustering within the box. The median number of stations is low, suggesting that half of the water objects have fewer than this value. However, there are a number of significant outliers above the upper whisker. The overall distribution is right-skewed, reflecting a monitoring strategy focused on larger or more significant water objects. While this prioritization is logical, the low representation of many water objects suggests that smaller or less prominent areas may not be receiving adequate attention. This imbalance could leave certain ecological or human health risks unaddressed.
+
+To better understand the placement and distribution of the water objects and their sampling stations, it is essential to visualize them on a map. This spatial perspective will provide insights into how the stations are geographically distributed and whether the current monitoring strategy effectively covers critical water resources.
 
 
-```{r}
+```{r, include=FALSE}
 armenia_map <- st_read("Armenia_Marzes.shp")
 stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
 ```
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot() +
   geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +
   geom_sf(data = stations_sf, aes(color = Water_Object), size = 2) +
   scale_color_viridis_d() +
-  labs(title = "Monitoring Stations Across Armenia", color = "Water Object") +
+  labs(title = "Monitoring Stations Across Armenia") +
   theme_classic() +
   theme(
     plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
     plot.subtitle = element_text(size = 12, hjust = 0.5),
-    axis.text.x = element_text(angle = 90, hjust = 1)
+    axis.text.x = element_text(hjust = 1),
+    legend.position = "none" # Removes the legend
   )
 ```
+
+
 The bar plots presented earlier highlight the distribution of sampling stations across different water objects. These visualizations provide a clear overview of the number of stations for each water object, which is essential for understanding the scope of data collection. However, to gain a more comprehensive understanding of spatial trends and the geographical distribution of water quality monitoring sites, it is crucial to explore the data on a map. The visualization on the map will allow a further investigation of any spatial patterns and regional variations that may not be immediately apparent from the bar plots alone.
 
 \section*{\Huge Analysis of Water Quality Components and Limitations}
