@@ -139,6 +139,7 @@ ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_
   )
 
 ```
+
 The water objects with the most number of stations are Great and Small Sevans, Hrazdan, Pambak and Qasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
 
 ```{r, include=FALSE}
@@ -183,11 +184,7 @@ ggplot() +
   )
 ```
 
-
-
-
-
-The bar plots presented earlier highlight the distribution of sampling stations across different water objects. These visualizations provide a clear overview of the number of stations for each water object, which is essential for understanding the scope of data collection. However, to gain a more comprehensive understanding of spatial trends and the geographical distribution of water quality monitoring sites, it is crucial to explore the data on a map. The visualization on the map will allow a further investigation of any spatial patterns and regional variations that may not be immediately apparent from the bar plots alone.
+The spatial distribution of monitoring stations across Armenia, visualized on the map, provides a comprehensive understanding of their geographical placement in relation to key water bodies. This complements the earlier statistical findings, where prominent water objects such as Great Sevan, Small Sevan, and major rivers like Hrazdan were identified as having the highest number of sampling stations. The map highlights a strategic focus on these critical resources, which play an essential role in Armenia’s water supply and ecosystem health. However, it also underscores potential gaps in coverage, particularly in less monitored regions, which aligns with the boxplot analysis suggesting underrepresentation of smaller or less prominent water bodies.
 
 \section*{\Huge Analysis of Water Quality Components and Limitations}
 While the map provides a visual representation of the distribution of sampling stations across various water objects, the next step is to shift focus to the water quality components that were analyzed.These components, such as dissolved oxygen, chemical oxygen demand (COD), and various chemical contaminants, offer crucial insights into the quality of the water. The following analysis will explore the concentrations and trends observed for these components, highlighting any significant variations or patterns that emerge from the data. It is important to note that the number of sources included and samples taken in the data is relatively limited and, additionally, some components were adjusted through multiplication by specific factors (?as advised by our professor). These adjustments, while necessary for analysis, may not perfectly align with actual conditions. Consequently, the interpretations of the data might lead to misconceptions or overgeneralizations. 
