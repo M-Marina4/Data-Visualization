@@ -142,7 +142,7 @@ ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_
   )
 
 ```
-The water objects with the most number of stations are Great and Small Sevans, Hrazdan, Pambak and Qasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
+The water objects with the most number of stations are Great and Small Sevans, Hrazdan, Pambak and Kasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
 
 ```{r, include=FALSE}
 station_counts_1 <- data_cleaned %>%
@@ -264,15 +264,6 @@ sankeyNetwork(
 Among the pollutants, Chemical Oxygen Demand (COD) has largest flows associated with the Lake Sevan (Great Sevan), indicating that there exists organic pollution in excess, probably due to a discharge or runoff resulting from industrial activity. In addition, COD is highly correlated with other water bodies including Hrazdan and Pambak; however, flow thicknesses are heterogeneous further implying different pollution sources. Relationship of sulfate (SO4) with Small Sevan and Arpi Lake Reservoir suggests such activities as industrial and mining related activities or natural geochemical processes. Herher and Kasakh are ammonium (NH4), which are with farming or without effective sewage discharge, especially in zones near farming. Less prominent lead (Pb) connections appear to represent heavy metal contamination at localized water objects, possibly induced by industrial or urban sources nearby. Finally, dissolved oxygen (DO) levels linked to multiple water bodies display which areas are stressed ecologically and reduced DO frequently indicates poor water quality and eutrophication. This diagram serves to illustrate how different degrees and types of pollution affect different water objects, conveying the spatial complexity and dynamics of contamination that are useful to understand to plan for targeted water management.
 
 
-\section*{Analysis: Temporal Trends in Water Quality Components}
-
-\textbf{Null Hypothesis (H0)}: There are no significant temporal trends in the concentrations of Dissolved Oxygen (DO), Chemical Oxygen Demand (COD), Ammonium (NH4), Lead (Pb), and Sulfate (SO4) across Lake Sevan, Hrazdan River, Pambak River, and other selected water objects.\newline
-\textbf{Alternative Hypothesis (H1)}: There are significant temporal trends in the concentrations of Dissolved Oxygen (DO), Chemical Oxygen Demand (COD), Ammonium (NH4), Lead (Pb), and Sulfate (SO4) across Lake Sevan, Hrazdan River, Pambak River, and other selected water objects.
-
-The long-term sustainability of water resources in Armenia depends on understanding how key water quality parameters evolve over time. This analysis focuses on the temporal trends of pollutants across selected water bodies, including Lake Sevan (Great Sevan and Small Sevan), Hrazdan River, and Pambak River, among others. The pollutants under investigation—Dissolved Oxygen (DO), Chemical Oxygen Demand (COD), Ammonium (NH4), Lead (Pb), and Sulfate (SO4)—are critical indicators of water health. Temporal trends in these components reflect the impact of anthropogenic activities such as agricultural runoff, industrial discharges, and urban pollution. By identifying patterns or significant changes over time, this analysis aims to detect potential ecological degradation, evaluate seasonal dynamics, and provide insights into pollution control efforts.
-
-
-
 
 
 
@@ -315,7 +306,7 @@ The histogram illustrates the distribution of dissolved oxygen (DO) levels in wa
 
 #Correlation Heatmap
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Filter only key numeric columns for correlation analysis
 selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
 filtered_data1 <- data_cleaned[selected_columns]
@@ -346,14 +337,69 @@ ggcorrplot(
 ```
 This heatmap paints a clear picture of how different water quality factors are connected and influence one another. For instance, we see that BOD5 (Biochemical Oxygen Demand) and COD (Chemical Oxygen Demand) are strongly linked. This makes sense because both measure the impact of organic pollution in water — when there's more organic matter breaking down, both of these measures increase. Similarly, COD and ammonium (NH4) show a close relationship, likely because organic waste and agricultural runoff contribute to higher ammonium levels, which in turn raise chemical oxygen demand.
 
+
+\section*{Analysis: Eutrophication risk across station}
+
+\textbf{Null Hypothesis (H0)}: Nutrient limitation type does not significantly influence the risk of eutrophication across monitoring stations.\newline
+\textbf{Alternative Hypothesis (H1)}: Nutrient limitation type significantly influences the risk of eutrophication across monitoring stations.
+
+Eutrophication is a process in which water objects, such as lakes, rivers, and oceans, become enriched with excess nutrients, primarily nitrogen (N) and phosphorus (P). These nutrients often come from sources like agricultural runoff, for example fertilizers, wastewater, or industrial discharges. Eutrophication leads to some algal blooms that in their turn produce toxins harmful to fish, animals, and even humans. Understanding and addressing this issue is a vital step in exploring water quality.
+The eutrophication risk in monitoring stations is determined by the nutrient limitation ratio, with nitrogen-limited sites exhibiting higher inorganic nitrogen concentrations and phosphorus-limited sites showing elevated phosphate levels.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Compute N:P ratio
+data_cleaned$NP_Ratio <- data_cleaned$Total_Inorganic_N / data_cleaned$PO4
+
+# Add a risk flag for easier analysis
+data_cleaned$Eutrophication_Risk <- ifelse(data_cleaned$NP_Ratio < 16, "Phosphorus-Limited", "Nitrogen-Limited")
+
+# Scatter plot visualizing the relationship between inorganic Nitrogen and Phosphate
+ggplot(data_cleaned, aes(x = PO4, y = Total_Inorganic_N, color = Eutrophication_Risk)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = c("Phosphorus-Limited" = "steelblue", "Nitrogen-Limited" = "darkred")) +
+  labs(
+    title = "Scatterplot of N:P Ratio for Eutrophication Risk",
+    x = "Phosphate (PO4) Concentration (mg/L)",
+    y = "Total Inorganic Nitrogen (mg/L)",
+    color = "Eutrophication Risk Type"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+```
+
+The scatterplot illustrates the relationship between total inorganic nitrogen and phosphate across monitoring stations, categorized by eutrophication risk as either Nitrogen-Limited or Phosphorus-Limited. The data points showing Nitrogen-Limited stations tend to cluster at higher nitrogen and lower phosphate concentrations. Conversely, Phosphorus-Limited stations are clustered at higher phosphate and lower nitrogen concentrations. 
+Interestingly, the plot also shows an overlap of risk types of different areas, which can be an indication of the fact that there could be stations that have moderate level of nitrogen and phosphate. However this is also an important highlight the need for more localized monitoring of the water objects and stations.  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Merge the data with stations to have the coordinates for further visualization on the map
+merged_data <- stations_sf %>%
+  left_join(data_cleaned %>% select(Station_Number, Eutrophication_Risk), by = "Station_Number") %>%
+  filter(!is.na(Eutrophication_Risk))
+
+ggplot() +
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +  
+  geom_sf(data = merged_data, aes(color = Eutrophication_Risk), size = 2) +  
+  scale_color_manual(values = c("Phosphorus-Limited" = "steelblue", "Nitrogen-Limited" = "darkred")) +
+  labs(title = "Eutrophication Risk Across Monitoring Stations",
+       color = "Eutrophication Risk Type") +
+  theme_classic() + 
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+```  
+
+The Phosphorus-Limited stations show more frequency over Nitrogen-Limited stations. Phosphorus often enters water systems through fertilizer runoff, detergents, and inadequately treated wastewater. The prevalence of phosphorus-limited stations highlights the need for robust measures to limit phosphorus inputs. These regions are at greater risk of developing harmful algal blooms if phosphorus levels rise, potentially impacting water quality, biodiversity, and human health. Although the Nitrogen-Limited stations are met less frequently, they require as much attention as the Phosphorus-Limited stations and immediate means of reducing excess nitrogen harming both the nature and humans.  
+
+
+\section*{Analysis: Pollution Dynamics and Dissolved Oxygen Trend}
+
+\textbf{Null Hypothesis (H0)}: The levels of nitrate (NO3), phosphate (PO4), and ammonium (NH4) are evenly distributed across Armenia’s river basins and show no significant seasonal variation.\newline
+\textbf{Alternative Hypothesis (H1)}: Nutrient pollution varies significantly between river basins and seasons due to agricultural, industrial, and seasonal runoff differences.
+
 Another important insight comes from the connection between Suspended Solids and Total Dissolved Solids (TDS). As these solids increase, it's often a sign of general pollution in the water. Metals like zinc (Zn), copper (Cu), and lead (Pb) show varying levels of connection to dissolved solids, which suggests that metals may also be part of this pollution but come from different sources like industrial runoff or mining.
 
 We can see that the heatmap reveals a concerning trend for Dissolved Oxygen (DO), which is critical for aquatic life. As pollutants like BOD5, COD, and NH4 increase, oxygen levels tend to drop. This is because these pollutants demand more oxygen as they break down, leaving less available for fish and other aquatic organisms. Low oxygen levels, especially in heavily polluted areas, can harm ecosystems, making these findings crucial for environmental action.
 
-**Hypothesis (H₀)**: The levels of nitrate (NO3), phosphate (PO4), and ammonium (NH4) are evenly distributed across Armenia’s river basins and show no significant seasonal variation.
-**Alternative Hypothesis (H₁)**: Nutrient pollution varies significantly between river basins and seasons due to agricultural, industrial, and seasonal runoff differences.
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 data_cleaned$Season <- cut(as.numeric(format(as.Date(data_cleaned$Date), "%m")),
                            breaks = c(0, 3, 6, 9, 12),
                            labels = c("Winter", "Spring", "Summer", "Fall"))
