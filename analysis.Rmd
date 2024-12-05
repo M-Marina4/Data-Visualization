@@ -288,10 +288,10 @@ ggplot(filtered_data, aes(x = River_Basin, y = Dissolved_Oxygen, fill = River_Ba
 ```{r}
 # Filter only key numeric columns for correlation analysis
 selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
-filtered_data <- data[selected_columns]
+filtered_data1 <- data_cleaned[selected_columns]
 
 # Compute the correlation matrix
-cor_matrix_filtered <- cor(filtered_data, use = "complete.obs")
+cor_matrix_filtered <- cor(filtered_data1, use = "complete.obs")
 
 ggcorrplot(
   cor_matrix_filtered,
