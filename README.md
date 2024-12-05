@@ -34,7 +34,7 @@ The datasets used in this project were obtained from various sources, including 
 ## Usage Instructions
 1. Clone this repository to your local machine.
 2. Load the data files from the `data` folder.
-3. Run the RMarkdown file (`analysis.Rmd`) to generate visualizations and perform analyses on water quality data.
+3. Run the RMarkdown file (`report.Rmd`) to generate visualizations and perform analyses on water quality data.
 4. To use the Shiny app, navigate to the `Shiny` folder and run the Shiny script in RStudio.
 
 ## Features
