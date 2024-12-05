@@ -350,73 +350,56 @@ Another important insight comes from the connection between Suspended Solids and
 
 We can see that the heatmap reveals a concerning trend for Dissolved Oxygen (DO), which is critical for aquatic life. As pollutants like BOD5, COD, and NH4 increase, oxygen levels tend to drop. This is because these pollutants demand more oxygen as they break down, leaving less available for fish and other aquatic organisms. Low oxygen levels, especially in heavily polluted areas, can harm ecosystems, making these findings crucial for environmental action.
 
-\section*{\Huge Water Hardness Comporision over years}
+**Hypothesis (H₀)**: The levels of nitrate (NO3), phosphate (PO4), and ammonium (NH4) are evenly distributed across Armenia’s river basins and show no significant seasonal variation.
+**Alternative Hypothesis (H₁)**: Nutrient pollution varies significantly between river basins and seasons due to agricultural, industrial, and seasonal runoff differences.
 
 ```{r}
-# Ensure the Date column is in Date format
-data_cleaned$Date <- as.Date(data_cleaned$Date, format = "%Y-%m-%d")
-
-# Extract Year from Date for aggregation
-data_cleaned$Year <- lubridate::year(data_cleaned$Date)
-
-# Filter data for both Big and Small Sevan basins
-sevan_data <- data_cleaned %>%
-  filter(
-    grepl("Սևանա լիճ - Մեծ Սևան", Water_Object, ignore.case = TRUE) |
-    grepl("Սևանա լիճ - Փոքր Սևան", Water_Object, ignore.case = TRUE)
+nutrient_summary <- data_cleaned %>%
+  group_by(River_Basin, Season) %>%
+  summarise(
+    Avg_NO3 = mean(NO3, na.rm = TRUE),
+    Avg_NH4 = mean(NH4, na.rm = TRUE),
+    Avg_PO4 = mean(PO4, na.rm = TRUE)
   ) %>%
-  mutate(
-    Sevan_Type = case_when(
-      grepl("Մեծ Սևան", Water_Object, ignore.case = TRUE) ~ "Big Sevan",
-      grepl("Փոքր Սևան", Water_Object, ignore.case = TRUE) ~ "Small Sevan"
-    )
-  )
+  pivot_longer(cols = starts_with("Avg"), 
+               names_to = "Nutrient", 
+               values_to = "Concentration")
 
-# Aggregate data to calculate mean Hardness per year for Big and Small Sevan
-sevan_hardness_trend <- sevan_data %>%
-  group_by(Year, Sevan_Type) %>%
-  summarise(Mean_Hardness = mean(Hardness, na.rm = TRUE))
 
-# Plot the trends
-ggplot(sevan_hardness_trend, aes(x = Year, y = Mean_Hardness, color = Sevan_Type, group = Sevan_Type)) +
+# Temporal trends visualization
+temporal_trends <- data_cleaned %>%
+  group_by(Date) %>%
+  summarise(
+    Avg_NO3 = mean(NO3, na.rm = TRUE),
+    Avg_NH4 = mean(NH4, na.rm = TRUE),
+    Avg_PO4 = mean(PO4, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = starts_with("Avg"), 
+               names_to = "Nutrient", 
+               values_to = "Concentration")
+
+ggplot(temporal_trends, aes(x = as.Date(Date), y = Concentration, color = Nutrient)) +
   geom_line(size = 1.2) +
-  geom_point(size = 3) +
-  scale_color_manual(
-    values = c("Big Sevan" = "darkblue", "Small Sevan" = "lightblue"),
-    name = "Sevan Type"
-  ) +
+  scale_color_viridis_d() +
   labs(
-    title = "Water Hardness Trends in Big and Small Sevan Over Years",
-    x = "Year",
-    y = "Mean Hardness (mg/L)"
+    title = "Temporal Trends in Nutrient Pollution",
+    x = "Date",
+    y = "Concentration (mg/L)",
+    color = "Nutrient"
   ) +
   theme_minimal(base_size = 14) +
   theme(
-    plot.title = element_text(face = "bold", size = 16, hjust = 0.5, color = "#2c3e50"),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "top",
-    panel.grid.major = element_line(color = "#ecf0f1"),
-    panel.grid.minor = element_blank()
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    legend.position = "right"
   )
 
 ```
 
-Hardness levels can be categorized as:
-Soft Water: 0–60 mg/L
-Moderately Hard Water: 61–120 mg/L
-Hard Water: 121–180 mg/L
-Very Hard Water: >180 mg/L
-The observed levels (3.3–3.9 mg/L) indicate very soft water, which is normal for Sevan due to its freshwater characteristics and minimal mineral deposits.
+Nutrient pollution, including nitrates, phosphates, and ammonium, is crucial for understanding water quality changes over time. This pollution often stems from agricultural practices and urban runoff, with seasonal variations, such as spring snowmelt or summer farming activities, further exacerbating its impact. By analyzing these temporal and spatial trends, it becomes clear how pollution hotspots emerge and how these nutrient levels fluctuate. The findings strongly demonstrate the influence of both human activities and natural seasonal factors on nutrient dynamics.
 
-Trends:
+Ammonium (NH4) exhibited significant variability, with noticeable spikes in late 2023 and early 2024, likely linked to agricultural runoff during planting and harvesting seasons, industrial discharges, or untreated sewage. This irregular behavior highlights the combined impact of human activities and seasonal events. In contrast, nitrate (NO3) levels remained relatively stable, suggesting a steady input from consistent sources, such as farming. Phosphate (PO4) levels, on the other hand, were consistently low, indicating effective regulatory controls or limited sources of phosphate pollution in Armenia.
 
-Both Big Sevan and Small Sevan exhibit similar trends in water hardness over the years.
-There was a noticeable decline in mean hardness levels from 2022 to 2023, followed by a rise in 2024.
-Comparison:
-
-Hardness levels in Big Sevan were consistently slightly higher than in Small Sevan throughout the observed period.
-The difference in hardness between the two basins is relatively small, suggesting similar environmental or geological factors affecting both.
+The observed patterns—ammonium's variability, nitrate's steadiness, and phosphate's low levels—provide strong evidence that nutrient pollution is shaped by both anthropogenic and seasonal factors. Therefore, the null hypothesis, which assumes no temporal variability in nutrient pollution, is rejected. The alternative hypothesis, asserting the influence of human and seasonal drivers, is accepted.s
 
 \section*{\Huge Conclusion}
 
