@@ -57,31 +57,43 @@ coordinates <- read.csv("coordinates.csv")
     {\large American University of Armenia\\Yerevan, Armenia\\December 6, 2024\par}
 \end{titlepage}
 
-\section*{\Huge Overview}
+\newpage
+\tableofcontents
+\newpage
+
+\section{Overview}
+\label{sec:overview}
 
 Water quality is one of the essential factors according to which the nature of water can be researched. Water quality directly impacts drinking water safety and agricultural productivity. Nowadays, many countries face a problem connected to the lack of drinking water. At the same time, Armenia is valued for its water resources how people state, especially foreign tourists; whenever you walk around the streets, you will come to a fountain from which water is constantly flowing, and the most exciting part is that you can use it and drink. This idea is highly connected with ecosystems and public health in Armenia; thus, understanding water quality is essential for addressing problems such as pollution, managing resources, and promoting environmental well-being. 
 
 If we consider this report from the perspective of the benefit of stakeholders, then we can state that a lot of them will benefit. The government can use this report to establish policies regulating pollutants and protecting water resources. Also, water structures can be controlled; thus, we can shift to environmental agencies that can monitor patterns of water quality degradation to react swiftly and mitigate risks. 
 
-\section*{\Huge Research Methodology}
+\section{Research Methodology}
+\label{sec:methodology}
+
 The research was done with the help of 2 main datasets. The first and primary dataset contains detailed measurements of water quality parameters for the monitoring stations, such as dissolved oxygen, ammonium levels, chemical oxygen demand (COD), suspended solids, water hardness level, etc. The second dataset includes the geographic coordinates of the monitoring stations, enabling spatial analysis of water quality trends within and across river basins.
 
 The datasets were collected in Armenian, requiring translation into English for easy analysis. Additional preprocessing steps included standardizing date and time formats, merging the datasets using station identifiers, and addressing missing values through imputation or exclusion. 
 
 The R programming language was used for the analysis. Additionally, we developed an interactive dashboard using the "Shiny" package. 
 
-\section*{\Huge Literature Review}
+\section{Literature Review}
+\label{sec:literature}
+
 Water quality in Armenia is vital because industrial, agricultural, and urban activities have increasingly impacted water quality. Two key reports provide valuable insights into Armenia's water resources: The Araks River Basin and the World Bank report on water resource management challenges. The report first looks at the Araks River Basin, including the most critical issues: pollution from heavy metals, turbidity, and untreated discharges. Arsenic and chromium are often elevated in tributaries of the Hrazdan and Sevjur from industrial and mining activities. These findings underscore the significance of pollution control targeting and improved wastewater treatment to conserve the basin's ecological and public health. The World Bank report introduces broader issues of water governance, infrastructure, and use, which are also raised in the context of Armenia's water resource management. However, this confirms the fragmentation of water management systems through multiple institutional responsibilities, which undermines efficient policymaking. The report recommends an integrated approach to water management, combining policy reforms, infrastructure investments, and data-driven monitoring to overcome Armenia's growing pressures on its water resources. These reports give a complete picture of Armenia's water quality problems. The World Bank report, while providing strategic recommendations for systemic improvements in water governance and infrastructure, focuses on broader determinants of pollution. 
 
-\section*{\Huge Data}
+\section{Data}
+\label{sec:data}
 
 The dataset being analyzed during the analysis contains vital water quality measurements collected from various monitoring stations across multiple water bodies. Each row represents a specific sampling event, with columns providing detailed information on physical, chemical, and biological parameters measured during that event. The dataset includes variables such as Dissolved Oxygen (mg/L), Biochemical Oxygen Demand (BOD5) (mg/L), and Chemical Oxygen Demand (COD) (mg/L), which are critical indicators of organic pollution and water health. Additionally, it includes nutrient concentrations (e.g., Ammonium, Nitrate, and Phosphate), metal levels (e.g., Zinc, Lead, and Copper), and general information like Sampling Date, Station Location, and Water Object.
 The temporal coverage spans from the earliest recorded sample date (`r min(data_cleaned$Date)`) to the latest (`r max(data_cleaned$Date)`), enabling trend analysis over time. Numeric variables provide quantitative measurements essential for understanding variations and correlations within the dataset.
 This structure ensures a comprehensive dataset, allowing in-depth analysis of water quality trends, pollution sources, and potential ecological impacts. 
 
-\section*{\Huge Hypothesis and Analysis}
+\section{Hypothesis and Analysis}
+\label{sec:hypothesis-analysis}
 
-\section*{Analysis: Distribution of Sampling Stations Across Water Objects}
+\subsection{Distribution of Sampling Stations}
+\label{subsec:distribution-sampling}
 
 
 \textbf{Null Hypothesis (H0)}: Sampling stations are equally distributed across different water objects.\newline
@@ -117,7 +129,7 @@ ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = N
   ) +
   theme_classic() +
   theme(
-    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
     plot.subtitle = element_text(size = 12, hjust = 0.5),
     axis.text.x = element_text(angle = 90, hjust = 1)
   )
@@ -138,7 +150,7 @@ ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_
   ) +
   theme_classic() +
   theme(
-    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
     axis.text.x = element_text(angle = 90, hjust = 1)
   )
 
@@ -160,7 +172,7 @@ ggplot(station_counts_1, aes(y = Number_of_Stations)) +
     y = "Number of Stations",
     x = ""
   ) +
-  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
         axis.text.x = element_blank())
 ```
 From the boxplot, it can be observed that the majority of water objects have relatively few monitoring stations, as indicated by the clustering within the box. The median number of stations is low, suggesting that half of the water objects have fewer than this value. However, there are a number of significant outliers above the upper whisker. The overall distribution is right-skewed, reflecting a monitoring strategy focused on larger or more significant water objects. While this prioritization is logical, the low representation of many water objects suggests that smaller or less prominent areas may not be receiving adequate attention. This imbalance could leave certain ecological or human health risks unaddressed.
@@ -180,7 +192,7 @@ ggplot() +
   labs(title = "Monitoring Stations Across Armenia") +
   theme_classic() +
   theme(
-    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
     plot.subtitle = element_text(size = 12, hjust = 0.5),
     axis.text.x = element_blank(),    
     axis.text.y = element_blank(),         
@@ -191,7 +203,8 @@ ggplot() +
 
 The spatial distribution of monitoring stations across Armenia, visualized on the map, provides a comprehensive understanding of their geographical placement in relation to key water bodies. This complements the earlier statistical findings, where prominent water objects such as Great Sevan, Small Sevan, and major rivers like Hrazdan were identified as having the highest number of sampling stations. The map highlights a strategic focus on these critical resources, which play an essential role in Armenia’s water supply and ecosystem health. However, it also underscores potential gaps in coverage, particularly in less monitored regions, which aligns with the boxplot analysis suggesting underrepresentation of smaller or less prominent water bodies.
 
-\section*{Analysis: Relationships Between Water Objects and Key Pollutants}
+\subsection{Relationships Between Water Objects and Key Pollutants}
+\label{subsec:relationships-pollutants}
 
 \textbf{Null Hypothesis (H0)}: The distribution and levels of key pollutants (Dissolved Oxygen, COD, NH4, Pb, and SO4) are consistent across all selected water objects.\newline
 \textbf{Alternative Hypothesis (H1)}: The distribution and levels of key pollutants vary significantly across the selected water objects.
@@ -261,8 +274,8 @@ sankeyNetwork(
 ```
 Among the pollutants, Chemical Oxygen Demand (COD) has largest flows associated with the Lake Sevan (Great Sevan), indicating that there exists organic pollution in excess, probably due to a discharge or runoff resulting from industrial activity. In addition, COD is highly correlated with other water bodies including Hrazdan and Pambak; however, flow thicknesses are heterogeneous further implying different pollution sources. Relationship of sulfate (SO4) with Small Sevan and Arpi Lake Reservoir suggests such activities as industrial and mining related activities or natural geochemical processes. Herher and Kasakh are ammonium (NH4), which are with farming or without effective sewage discharge, especially in zones near farming. Less prominent lead (Pb) connections appear to represent heavy metal contamination at localized water objects, possibly induced by industrial or urban sources nearby. Finally, dissolved oxygen (DO) levels linked to multiple water bodies display which areas are stressed ecologically and reduced DO frequently indicates poor water quality and eutrophication. This diagram serves to illustrate how different degrees and types of pollution affect different water objects, conveying the spatial complexity and dynamics of contamination that are useful to understand to plan for targeted water management.
 
-
-\section*{Analysis: Analysis of Water Quality Components and Limitations}
+\subsection{Analysis of Water Quality Components and Limitations}
+\label{subsec:water-quality}
 
 \textbf{Null Hypothesis (H0)}: There is no significant correlation between water quality parameters such as Dissolved Oxygen, BOD5, COD, NH4, NO3, and metal concentrations (Zn, Cu, Pb) across the monitoring stations.
 \newline
@@ -281,14 +294,11 @@ ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
     y = "Frequency") + 
   theme_classic() +
   theme(
-    plot.title = element_text(size = 16, face = "bold", hjust = 0.5))  
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5))  
 ```
 
 The histogram illustrates the distribution of dissolved oxygen (DO) levels in water samples, revealing several key patterns. The distribution of DO is highly right-skewed, with the majority of values concentrated between 0 and 15 mg/L.Within this range a significant increase can be observed between 5 and 10 mg/L, which is considered to be the optimal DO level. However, there is a notable spike at or near zero indicating the presence of hypoxic conditions in certain water samples. Hypoxic conditions occur when DO levels in water drop below 2 mg/L, which is insufficient to support most aquatic life. These conditions are generally harmful to the health of aquatic ecosystems. This highlights the fact that there are stations which are either close to or in "dead zones". 
 
-
-
-#Correlation Heatmap
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
@@ -313,7 +323,7 @@ ggcorrplot(
   theme_classic() +
   theme(
     plot.title = element_text(
-      face = "bold", size = 16, hjust = 0.5, color = "#2c3e50"
+      face = "bold", size = 13, hjust = 0.5, color = "#2c3e50"
     ),                          
     axis.text.x = element_text(
       angle = 45, hjust = 1, size = 10
@@ -325,7 +335,8 @@ ggcorrplot(
 This heatmap paints a clear picture of how different water quality factors are connected and influence one another. For instance, we see that BOD5 (Biochemical Oxygen Demand) and COD (Chemical Oxygen Demand) are strongly linked. This makes sense because both measure the impact of organic pollution in water — when there's more organic matter breaking down, both of these measures increase. Similarly, COD and ammonium (NH4) show a close relationship, likely because organic waste and agricultural runoff contribute to higher ammonium levels, which in turn raise chemical oxygen demand.
 
 
-\section*{Analysis: Eutrophication risk across station}
+\subsection{Eutrophication Risk Across Stations}
+\label{subsec:eutrophication-risk}
 
 \textbf{Null Hypothesis (H0)}: Nutrient limitation type does not significantly influence the risk of eutrophication across monitoring stations.\newline
 \textbf{Alternative Hypothesis (H1)}: Nutrient limitation type significantly influences the risk of eutrophication across monitoring stations.
@@ -351,7 +362,7 @@ ggplot(data_cleaned, aes(x = PO4, y = Total_Inorganic_N, color = Eutrophication_
     color = "Eutrophication Risk Type"
   ) +
   theme_minimal() +
-  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5))
 ```
 
 The scatterplot illustrates the relationship between total inorganic nitrogen and phosphate across monitoring stations, categorized by eutrophication risk as either Nitrogen-Limited or Phosphorus-Limited. The data points showing Nitrogen-Limited stations tend to cluster at higher nitrogen and lower phosphate concentrations. Conversely, Phosphorus-Limited stations are clustered at higher phosphate and lower nitrogen concentrations. 
@@ -369,14 +380,15 @@ ggplot() +
   labs(title = "Eutrophication Risk Across Monitoring Stations",
        color = "Eutrophication Risk Type") +
   theme_classic() + 
-  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),axis.text.x = element_blank(),
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5),axis.text.x = element_blank(),
         axis.text.y = element_blank(),axis.ticks = element_blank())
 ```  
 
 The Phosphorus-Limited stations show more frequency over Nitrogen-Limited stations. Phosphorus often enters water systems through fertilizer runoff, detergents, and inadequately treated wastewater. The prevalence of phosphorus-limited stations highlights the need for robust measures to limit phosphorus inputs. These regions are at greater risk of developing harmful algal blooms if phosphorus levels rise, potentially impacting water quality, biodiversity, and human health. Although the Nitrogen-Limited stations are met less frequently, they require as much attention as the Phosphorus-Limited stations and immediate means of reducing excess nitrogen harming both the nature and humans.  
 
 
-\section*{Analysis: Pollution Dynamics and Dissolved Oxygen Trend}
+\subsection{Pollution Dynamics and Dissolved Oxygen Trends}
+\label{subsec:pollution-dynamics}
 
 \textbf{Null Hypothesis (H0)}: The levels of nitrate (NO3), phosphate (PO4), and ammonium (NH4) are evenly distributed across Armenia’s river basins and show no significant seasonal variation.\newline
 \textbf{Alternative Hypothesis (H1)}: Nutrient pollution varies significantly between river basins and seasons due to agricultural, industrial, and seasonal runoff differences.
@@ -426,7 +438,7 @@ ggplot(temporal_trends, aes(x = as.Date(Date), y = Concentration, color = Nutrie
   ) +
   theme_minimal(base_size = 14) +
   theme(
-    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.title = element_text(face = "bold", size = 13, hjust = 0.5),
     legend.position = "right"
   )
 
@@ -438,9 +450,18 @@ Ammonium (NH4) exhibited significant variability, with noticeable spikes in late
 
 The observed patterns—ammonium's variability, nitrate's steadiness, and phosphate's low levels—provide strong evidence that nutrient pollution is shaped by both anthropogenic and seasonal factors. Therefore, the null hypothesis, which assumes no temporal variability in nutrient pollution, is rejected. The alternative hypothesis, asserting the influence of human and seasonal drivers, is accepted.s
 
-\section*{\Huge Conclusion}
+\section{Conclusion}
+\label{sec:conclusion}
 
-\section*{\Huge References}
+This study highlights how vital it is to keep an eye on and manage Armenia's water quality. Highlighting hotspots of organic and nutrient pollution, which are frequently connected to industrial, urban, and agricultural activities, the results show notable variation in contamination levels between water objects. The necessity of focused interventions, including improved wastewater treatment, stronger pollution controls, and regional monitoring systems, is highlighted by these trends.
+
+The relationship between key pollutants and measures of water quality suggests systematic problems that call for a combination of management strategies. In order to preserve ecological balance and public health, Armenia can protect its water resources by implementing data-driven initiatives and strengthening governance infrastructures.
+
+
+Future studies should concentrate on investigating sophisticated predictive models to foresee future events and broadening the temporal and spatial scope of monitoring to include underrepresented locations.Policymakers and environmental organizations can successfully resolve issues with water quality and ensure the country's water supplies are sustainable by taking such steps.
+
+\section{References}
+\label{sec:references}
 
 Nalbandyan, A., Avagyan, A., & Sargsyan, G. (2011). Assessing the Quality of Water of the Araks Basin Rivers in Armenia. Environmental Science and Pollution Research. Retrieved from https://www.researchgate.net/publication/225259203_Assessing_the_Quality_of_Water_of_the_Araks_Basin_Rivers_in_Armenia
 
