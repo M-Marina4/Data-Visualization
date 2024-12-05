@@ -37,8 +37,8 @@ library(ggcorrplot)
 ```
 
 ```{r, echo = FALSE, warning = FALSE, include = FALSE}
-data_cleaned <- read.csv("data/processed/cleaned_water_data.csv")
-coordinates <- read.csv("data/processed/coordinates.csv")
+data_cleaned <- read.csv("cleaned_water_data.csv")
+coordinates <- read.csv("coordinates.csv")
 ```
 
 \begin{titlepage}
@@ -180,7 +180,7 @@ From the boxplot, it can be observed that the majority of water objects have rel
 To better understand the placement and distribution of the water objects and their sampling stations, it is essential to visualize them on a map. This spatial perspective will provide insights into how the stations are geographically distributed and whether the current monitoring strategy effectively covers critical water resources.
 
 ```{r, include=FALSE}
-armenia_map <- st_read("Shapefiles/Armenia_Marzes.shp")
+armenia_map <- st_read("Armenia_Marzes.shp")
 stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
 ```
 

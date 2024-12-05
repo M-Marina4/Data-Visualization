@@ -1,0 +1,13 @@
+name: data-visualization
+title: Data-Visualization
+username: elen-ghalechyan
+account: elen-ghalechyan
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13534519
+bundleId: 9470021
+url: https://elen-ghalechyan.shinyapps.io/data-visualization/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .~lock.Coordinates.xlsx#|analysis.Rmd|Armenia_Marzes.dbf|Armenia_Marzes.prj|Armenia_Marzes.sbn|Armenia_Marzes.sbx|Armenia_Marzes.shp|Armenia_Marzes.shp.xml|Armenia_Marzes.shx|cleaned_water_data.csv|coordinates.csv|Coordinates.xlsx|data_cleaning.Rmd|README.md|report.pdf|report.Rmd|Slides.pdf|Slides.Rmd|water_data.xlsx

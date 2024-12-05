@@ -1,0 +1,354 @@
+---
+title: "DS 116 - Data Visualization"
+subtitle: "Water Analysis"
+author: "Elen Ghalechyan,Hripsime Soghomonyan,Marieta Khachatryan,Marina Melkonyan Section A"
+institute: "American University of Armenia" 
+date: "2024-12-06"
+fontsize: 10pt
+output:
+  beamer_presentation:
+    theme: "CambridgeUS"
+    colortheme: "dolphin"
+    fonttheme: "structurebold"
+    pandoc_args: '--pdf-engine=xelatex'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = F,  collapse = TRUE, warning=F, message = F, out.width = '80%', 
+                      size = 'footnotesize')
+options(scipen = 999)
+library(readxl)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(corrplot)
+library(lubridate)
+library(systemfonts)
+library(networkD3)
+library(GGally)
+library(tidyr)
+library(knitr)
+library(ggcorrplot)
+library(FactoMineR)
+library(RColorBrewer)
+library(factoextra)
+library(pheatmap)
+library(reshape2)
+library(spdep)      
+library(spatstat)  
+library(viridis)
+library(ggpubr)
+library(ggcorrplot)
+```
+
+```{r, echo = F}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "footnotesize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\footnotesize"), x)
+})
+```
+
+```{r, echo = FALSE, warning = FALSE, include = FALSE}
+data_cleaned <- read.csv("cleaned_water_data.csv")
+coordinates <- read.csv("coordinates.csv")
+```
+
+## Overview
+
+- Armenia’s water quality is crucial for drinking water safety and agricultural productivity.
+- Objectives:
+  - Analyze distribution of water sampling stations.
+  - Assess relationships between pollutants and water objects.
+  - Explore eutrophication risks and propose interventions.
+  
+## Research Methodology
+
+- **Datasets**:
+  - Primary: Water quality parameters (DO, COD, NH4, metals, etc.).
+  - Secondary: Geographic coordinates of sampling stations.
+- **Preprocessing**:
+  - Translation, merging, and handling missing values.
+- **Analysis conducted in R**, with Shiny dashboard for visualization.
+
+## Distribution of Sampling Stations
+
+We analyzed the number of monitoring stations across various water objects to understand the representativeness of the dataset.
+
+```{r, include=FALSE}
+station_counts <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n())%>%
+  arrange(desc(Number_of_Stations))
+total_stations <- station_counts %>% summarise(Total_Stations = sum(Number_of_Stations))
+```
+
+```{r, include=FALSE}
+top_bottom_counts <- bind_rows(
+  head(station_counts, 5), 
+  tail(station_counts, 5)  
+)
+# top_bottom_counts
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
+  labs(
+    title = "Number of Sampling Stations per Water Object",
+    subtitle = "Visualizing the distribution of stations across various water objects",
+    x = "Water Object",
+    y = "Number of Stations"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+top_5 <- head(station_counts, 5)
+
+ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
+  geom_label(aes(label = Number_of_Stations), vjust = 0.5, size = 4) + 
+  labs(
+    title = "Top 5 Water Objects by Sampling Stations",
+    x = "Water Object",
+    y = "Number of Stations"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+```
+
+```{r, include=FALSE}
+station_counts_1 <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(station_counts_1, aes(y = Number_of_Stations)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  theme_classic() +
+  labs(
+    title = "Statistical Distribution of Station Counts Across Water Objects",
+    y = "Number of Stations",
+    x = ""
+  ) +
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
+        axis.text.x = element_blank())
+```
+
+```{r, include=FALSE}
+armenia_map <- st_read("Armenia_Marzes.shp")
+stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot() +
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +
+  geom_sf(data = stations_sf, aes(color = Water_Object), size = 2) +
+  scale_color_viridis_d() +
+  labs(title = "Monitoring Stations Across Armenia") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.x = element_blank(),    
+    axis.text.y = element_blank(),         
+    axis.ticks = element_blank(),
+    legend.position = "none"
+  )
+```
+
+```{r, include=FALSE}
+top_5_objects <- station_counts %>% top_n(5, Number_of_Stations)
+least_5_objects <- station_counts %>% top_n(-5, Number_of_Stations)
+
+selected_objects <- bind_rows(top_5_objects, least_5_objects)
+
+pollutants <- c("Dissolved_Oxygen", "COD", "NH4", "Pb", "SO4") 
+
+contaminant_data <- data_cleaned %>%
+  filter(Water_Object %in% selected_objects$Water_Object) %>%  
+  select(Water_Object, all_of(pollutants)) %>% 
+  pivot_longer(
+    cols = all_of(pollutants),
+    names_to = "Contaminant_Type",
+    values_to = "Contaminant_Level"
+  ) %>%
+  group_by(Water_Object, Contaminant_Type) %>%
+  summarise(Avg_Level = mean(Contaminant_Level, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(Avg_Level))
+
+```
+
+```{r, include=FALSE}
+nodes <- data.frame(
+  name = c(
+    unique(contaminant_data$Water_Object), 
+    unique(contaminant_data$Contaminant_Type) 
+  )
+)
+
+
+links <- contaminant_data %>%
+  mutate(
+    source = match(Water_Object, nodes$name) - 1,  
+    target = match(Contaminant_Type, nodes$name) - 1 
+  ) %>%
+  select(source, target, Avg_Level) %>%
+  rename(value = Avg_Level) 
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# sankeyNetwork(
+#   Links = links,
+#   Nodes = nodes,
+#   Source = "source",
+#   Target = "target",
+#   Value = "value",
+#   NodeID = "name",
+#   units = "Average Level",
+#   fontSize = 14,
+#   nodeWidth = 30,
+#   colourScale = 'd3.scaleOrdinal(["#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f"])'
+# )
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of Dissolved Oxygen", 
+    x = "Dissolved Oxygen (mg/L)",
+    y = "Frequency") + 
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5))  
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
+filtered_data1 <- data_cleaned[selected_columns]
+
+cor_matrix_filtered <- cor(filtered_data1, use = "complete.obs")
+
+ggcorrplot(
+  cor_matrix_filtered,
+  lab = TRUE,                    
+  type = "lower",               
+  colors = c("blue", "white", "red"),  
+  title = "Correlation Heatmap of Water Quality Parameters",
+  outline.color = "black",   
+  lab_size = 2,             
+  tl.cex = 10                  
+) +
+  labs(
+    x = NULL,                          
+    y = NULL                               
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(
+      face = "bold", size = 13, hjust = 0.5, color = "#2c3e50"
+    ),                          
+    axis.text.x = element_text(
+      angle = 45, hjust = 1, size = 10
+    ),                          
+    axis.text.y = element_text(size = 10) 
+  )
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Compute N:P ratio
+data_cleaned$NP_Ratio <- data_cleaned$Total_Inorganic_N / data_cleaned$PO4
+
+# Add a risk flag for easier analysis
+data_cleaned$Eutrophication_Risk <- ifelse(data_cleaned$NP_Ratio < 16, "Phosphorus-Limited", "Nitrogen-Limited")
+
+# Scatter plot visualizing the relationship between inorganic Nitrogen and Phosphate
+ggplot(data_cleaned, aes(x = PO4, y = Total_Inorganic_N, color = Eutrophication_Risk)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = c("Phosphorus-Limited" = "steelblue", "Nitrogen-Limited" = "darkred")) +
+  labs(
+    title = "Scatterplot of N:P Ratio for Eutrophication Risk",
+    x = "Phosphate (PO4) Concentration (mg/L)",
+    y = "Total Inorganic Nitrogen (mg/L)",
+    color = "Eutrophication Risk Type"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5))
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+merged_data <- stations_sf %>%
+  left_join(data_cleaned %>% select(Station_Number, Eutrophication_Risk), by = "Station_Number") %>%
+  filter(!is.na(Eutrophication_Risk))
+
+ggplot() +
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +  
+  geom_sf(data = merged_data, aes(color = Eutrophication_Risk), size = 2) +  
+  scale_color_manual(values = c("Phosphorus-Limited" = "steelblue", "Nitrogen-Limited" = "darkred")) +
+  labs(title = "Eutrophication Risk Across Monitoring Stations",
+       color = "Eutrophication Risk Type") +
+  theme_classic() + 
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5),axis.text.x = element_blank(),
+        axis.text.y = element_blank(),axis.ticks = element_blank())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+data_cleaned$Season <- cut(as.numeric(format(as.Date(data_cleaned$Date), "%m")),
+                           breaks = c(0, 3, 6, 9, 12),
+                           labels = c("Winter", "Spring", "Summer", "Fall"))
+
+nutrient_summary <- data_cleaned %>%
+  group_by(River_Basin, Season) %>%
+  summarise(
+    Avg_NO3 = mean(NO3, na.rm = TRUE),
+    Avg_NH4 = mean(NH4, na.rm = TRUE),
+    Avg_PO4 = mean(PO4, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = starts_with("Avg"), 
+               names_to = "Nutrient", 
+               values_to = "Concentration")
+
+
+# Temporal trends visualization
+temporal_trends <- data_cleaned %>%
+  group_by(Date) %>%
+  summarise(
+    Avg_NO3 = mean(NO3, na.rm = TRUE),
+    Avg_NH4 = mean(NH4, na.rm = TRUE),
+    Avg_PO4 = mean(PO4, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = starts_with("Avg"), 
+               names_to = "Nutrient", 
+               values_to = "Concentration")
+
+ggplot(temporal_trends, aes(x = as.Date(Date), y = Concentration, color = Nutrient)) +
+  geom_line(size = 1) +
+  scale_color_viridis_d() +
+  labs(
+    title = "Temporal Trends in Nutrient Pollution",
+    x = "Date",
+    y = "Concentration (mg/L)",
+    color = "Nutrient"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 13, hjust = 0.5),
+    legend.position = "right"
+  )
+
+```
