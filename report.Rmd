@@ -215,6 +215,75 @@ Organic and chemical pollution indicators (BOD5, COD, NH4) are closely interrela
 Suspended solids and TDS are linked to overall water pollution, potentially including heavy metals.
 Dissolved oxygen is negatively impacted by pollution, affecting aquatic life.
 
+
+\section*{\Huge Water Hardness Comporision over years}
+
+```{r}
+# Ensure the Date column is in Date format
+data_cleaned$Date <- as.Date(data_cleaned$Date, format = "%Y-%m-%d")
+
+# Extract Year from Date for aggregation
+data_cleaned$Year <- lubridate::year(data_cleaned$Date)
+
+# Filter data for both Big and Small Sevan basins
+sevan_data <- data_cleaned %>%
+  filter(
+    grepl("Սևանա լիճ - Մեծ Սևան", Water_Object, ignore.case = TRUE) |
+    grepl("Սևանա լիճ - Փոքր Սևան", Water_Object, ignore.case = TRUE)
+  ) %>%
+  mutate(
+    Sevan_Type = case_when(
+      grepl("Մեծ Սևան", Water_Object, ignore.case = TRUE) ~ "Big Sevan",
+      grepl("Փոքր Սևան", Water_Object, ignore.case = TRUE) ~ "Small Sevan"
+    )
+  )
+
+# Aggregate data to calculate mean Hardness per year for Big and Small Sevan
+sevan_hardness_trend <- sevan_data %>%
+  group_by(Year, Sevan_Type) %>%
+  summarise(Mean_Hardness = mean(Hardness, na.rm = TRUE))
+
+# Plot the trends
+ggplot(sevan_hardness_trend, aes(x = Year, y = Mean_Hardness, color = Sevan_Type, group = Sevan_Type)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  scale_color_manual(
+    values = c("Big Sevan" = "darkblue", "Small Sevan" = "lightblue"),
+    name = "Sevan Type"
+  ) +
+  labs(
+    title = "Water Hardness Trends in Big and Small Sevan Over Years",
+    x = "Year",
+    y = "Mean Hardness (mg/L)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5, color = "#2c3e50"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title = element_text(size = 14, face = "bold"),
+    legend.position = "top",
+    panel.grid.major = element_line(color = "#ecf0f1"),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+Hardness levels can be categorized as:
+Soft Water: 0–60 mg/L
+Moderately Hard Water: 61–120 mg/L
+Hard Water: 121–180 mg/L
+Very Hard Water: >180 mg/L
+The observed levels (3.3–3.9 mg/L) indicate very soft water, which is normal for Sevan due to its freshwater characteristics and minimal mineral deposits.
+
+Trends:
+
+Both Big Sevan and Small Sevan exhibit similar trends in water hardness over the years.
+There was a noticeable decline in mean hardness levels from 2022 to 2023, followed by a rise in 2024.
+Comparison:
+
+Hardness levels in Big Sevan were consistently slightly higher than in Small Sevan throughout the observed period.
+The difference in hardness between the two basins is relatively small, suggesting similar environmental or geological factors affecting both.
+
 \section*{\Huge Conclusion}
 
 \section*{\Huge References}
