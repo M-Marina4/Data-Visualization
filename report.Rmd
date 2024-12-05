@@ -25,6 +25,7 @@ library(tidyr)
 library(knitr)
 library(ggcorrplot)
 library(FactoMineR)
+library(RColorBrewer)
 library(factoextra)
 library(pheatmap)
 library(reshape2)
@@ -70,7 +71,7 @@ The datasets were collected in Armenian, requiring translation into English for 
 The R programming language was used for the analysis. Additionally, we developed an interactive dashboard using the "Shiny" package. 
 
 \section*{\Huge Literature Review}
-Water quality in Armenia is vital because industrial, agricultural, and urban activities have increasingly impacted water quality. Two key reports provide valuable insights into Armenia's water resources: The Araks River Basin and the World Bank report on water resource management challenges. The report first looks at the Araks River Basin, including the most critical issues: pollution from heavy metals, turbidity, and untreated discharges. Arsenic and chromium are often elevated in tributaries of the Hrazdan and Sevjur from industrial and mining activities. These findings underscore the significance of pollution control targeting and improved wastewater treatment to conserve the basin's ecological and public health. The World Bank report introduces broader issues of water governance, infrastructure, and use, which are also raised in the context of Armenia's water resource management. However, this confirms the fragmentation of water management systems through multiple institutional responsibilities, which undermines efficient policymaking. The report recommends an integrated approach to water management, combining policy reforms, infrastructure investments, and data-driven monitoring to overcome Armenia's growing pressures on its water resources. These reports give a complete picture of Armenia's water quality problems. The World Bank report, while providing strategic recommendations for systemic improvements in water governance and infrastructure, focuses on broader determinants of pollution. For further details, refer to the https://www.researchgate.net/publication/225259203_Assessing_the_Quality_of_Water_of_the_Araks_Basin_Rivers_in_Armeniaand and  https://documents1.worldbank.org/curated/en/099062424121038546/pdf/P1700301619bb50718c6b1c554e0879f1e.pdf.
+Water quality in Armenia is vital because industrial, agricultural, and urban activities have increasingly impacted water quality. Two key reports provide valuable insights into Armenia's water resources: The Araks River Basin and the World Bank report on water resource management challenges. The report first looks at the Araks River Basin, including the most critical issues: pollution from heavy metals, turbidity, and untreated discharges. Arsenic and chromium are often elevated in tributaries of the Hrazdan and Sevjur from industrial and mining activities. These findings underscore the significance of pollution control targeting and improved wastewater treatment to conserve the basin's ecological and public health. The World Bank report introduces broader issues of water governance, infrastructure, and use, which are also raised in the context of Armenia's water resource management. However, this confirms the fragmentation of water management systems through multiple institutional responsibilities, which undermines efficient policymaking. The report recommends an integrated approach to water management, combining policy reforms, infrastructure investments, and data-driven monitoring to overcome Armenia's growing pressures on its water resources. These reports give a complete picture of Armenia's water quality problems. The World Bank report, while providing strategic recommendations for systemic improvements in water governance and infrastructure, focuses on broader determinants of pollution. 
 
 \section*{\Huge Data}
 
@@ -159,7 +160,7 @@ ggplot(station_counts_1, aes(y = Number_of_Stations)) +
     y = "Number of Stations",
     x = ""
   ) +
-  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
         axis.text.x = element_blank())
 ```
 From the boxplot, it can be observed that the majority of water objects have relatively few monitoring stations, as indicated by the clustering within the box. The median number of stations is low, suggesting that half of the water objects have fewer than this value. However, there are a number of significant outliers above the upper whisker. The overall distribution is right-skewed, reflecting a monitoring strategy focused on larger or more significant water objects. While this prioritization is logical, the low representation of many water objects suggests that smaller or less prominent areas may not be receiving adequate attention. This imbalance could leave certain ecological or human health risks unaddressed.
@@ -181,8 +182,10 @@ ggplot() +
   theme(
     plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
     plot.subtitle = element_text(size = 12, hjust = 0.5),
-    axis.text.x = element_text(hjust = 1),
-    legend.position = "none" # Removes the legend
+    axis.text.x = element_blank(),    
+    axis.text.y = element_blank(),         
+    axis.ticks = element_blank(),
+    legend.position = "none"
   )
 ```
 
@@ -202,17 +205,13 @@ Logically, we expect the Sankey diagram to reveal distinct patterns of contamina
 
 
 ```{r, include=FALSE}
-# Rank water objects by the number of stations (or another metric)
 top_5_objects <- station_counts %>% top_n(5, Number_of_Stations)
 least_5_objects <- station_counts %>% top_n(-5, Number_of_Stations)
 
-# Combine top and least water objects
 selected_objects <- bind_rows(top_5_objects, least_5_objects)
 
-# Identify key pollutant columns
 pollutants <- c("Dissolved_Oxygen", "COD", "NH4", "Pb", "SO4") 
 
-# Filter the dataset for selected water objects
 contaminant_data <- data_cleaned %>%
   filter(Water_Object %in% selected_objects$Water_Object) %>%  
   select(Water_Object, all_of(pollutants)) %>% 
@@ -247,7 +246,6 @@ links <- contaminant_data %>%
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Create the Sankey Diagram
 sankeyNetwork(
   Links = links,        
   Nodes = nodes,             
@@ -264,42 +262,28 @@ sankeyNetwork(
 Among the pollutants, Chemical Oxygen Demand (COD) has largest flows associated with the Lake Sevan (Great Sevan), indicating that there exists organic pollution in excess, probably due to a discharge or runoff resulting from industrial activity. In addition, COD is highly correlated with other water bodies including Hrazdan and Pambak; however, flow thicknesses are heterogeneous further implying different pollution sources. Relationship of sulfate (SO4) with Small Sevan and Arpi Lake Reservoir suggests such activities as industrial and mining related activities or natural geochemical processes. Herher and Kasakh are ammonium (NH4), which are with farming or without effective sewage discharge, especially in zones near farming. Less prominent lead (Pb) connections appear to represent heavy metal contamination at localized water objects, possibly induced by industrial or urban sources nearby. Finally, dissolved oxygen (DO) levels linked to multiple water bodies display which areas are stressed ecologically and reduced DO frequently indicates poor water quality and eutrophication. This diagram serves to illustrate how different degrees and types of pollution affect different water objects, conveying the spatial complexity and dynamics of contamination that are useful to understand to plan for targeted water management.
 
 
+\section*{Analysis: Analysis of Water Quality Components and Limitations}
 
+\textbf{Null Hypothesis (H0)}: There is no significant correlation between water quality parameters such as Dissolved Oxygen, BOD5, COD, NH4, NO3, and metal concentrations (Zn, Cu, Pb) across the monitoring stations.
+\newline
+\textbf{Alternative Hypothesis (H1)}: There is a significant correlation between water quality parameters such as Dissolved Oxygen, BOD5, COD, NH4, NO3, and metal concentrations (Zn, Cu, Pb) across the monitoring stations.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-**Analysis**: Analysis of Water Quality Components and Limitations
 
 While the map provides a visual representation of the distribution of sampling stations across various water objects, the next step is to shift focus to the water quality components that were analyzed.These components, such as dissolved oxygen, chemical oxygen demand (COD), and various chemical contaminants, offer crucial insights into the quality of the water. The following analysis will explore the concentrations and trends observed for these components, highlighting any significant variations or patterns that emerge from the data. It is important to note that the number of sources included and samples taken in the data is relatively limited and, additionally, some components were adjusted through multiplication by specific factors (?as advised by our professor). These adjustments, while necessary for analysis, may not perfectly align with actual conditions. Consequently, the interpretations of the data might lead to misconceptions or overgeneralizations. 
 
 
-```{r}
-# Univariate Analysis - Histogram of Dissolved Oxygen
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
   geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
   labs(
     title = "Distribution of Dissolved Oxygen", 
     x = "Dissolved Oxygen (mg/L)",
     y = "Frequency") + 
+  theme_classic() +
   theme(
     plot.title = element_text(size = 16, face = "bold", hjust = 0.5))  
-
 ```
+
 The histogram illustrates the distribution of dissolved oxygen (DO) levels in water samples, revealing several key patterns. The distribution of DO is highly right-skewed, with the majority of values concentrated between 0 and 15 mg/L.Within this range a significant increase can be observed between 5 and 10 mg/L, which is considered to be the optimal DO level. However, there is a notable spike at or near zero indicating the presence of hypoxic conditions in certain water samples. Hypoxic conditions occur when DO levels in water drop below 2 mg/L, which is insufficient to support most aquatic life. These conditions are generally harmful to the health of aquatic ecosystems. This highlights the fact that there are stations which are either close to or in "dead zones". 
 
 
@@ -307,34 +291,37 @@ The histogram illustrates the distribution of dissolved oxygen (DO) levels in wa
 #Correlation Heatmap
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Filter only key numeric columns for correlation analysis
 selected_columns <- c("Dissolved_Oxygen", "BOD5", "COD", "NH4", "NO3", "Zn", "Cu", "Pb", "Hardness", "TDS", "Suspended_Solids")
 filtered_data1 <- data_cleaned[selected_columns]
 
-# Compute the correlation matrix
 cor_matrix_filtered <- cor(filtered_data1, use = "complete.obs")
 
-# Plot the correlation heatmap
 ggcorrplot(
   cor_matrix_filtered,
-  lab = TRUE,                    # Show correlation values
-  type = "lower",                # Show only the lower triangle
-  colors = c("blue", "white", "red"),  # Color scale
+  lab = TRUE,                    
+  type = "lower",               
+  colors = c("blue", "white", "red"),  
   title = "Correlation Heatmap of Water Quality Parameters",
-  outline.color = "black",       # Outline the cells for clarity
-  lab_size = 3.5,                # Adjust the size of the correlation labels
-  tl.cex = 10                    # Adjust the size of the axis labels
+  outline.color = "black",   
+  lab_size = 2,             
+  tl.cex = 10                  
 ) +
+  labs(
+    x = NULL,                          
+    y = NULL                               
+  ) +
+  theme_classic() +
   theme(
     plot.title = element_text(
       face = "bold", size = 16, hjust = 0.5, color = "#2c3e50"
-    ),                            # Bold and centered title
+    ),                          
     axis.text.x = element_text(
       angle = 45, hjust = 1, size = 10
-    ),                            # Rotate and adjust font size of x-axis labels
-    axis.text.y = element_text(size = 10) # Adjust font size of y-axis labels
+    ),                          
+    axis.text.y = element_text(size = 10) 
   )
 ```
+
 This heatmap paints a clear picture of how different water quality factors are connected and influence one another. For instance, we see that BOD5 (Biochemical Oxygen Demand) and COD (Chemical Oxygen Demand) are strongly linked. This makes sense because both measure the impact of organic pollution in water — when there's more organic matter breaking down, both of these measures increase. Similarly, COD and ammonium (NH4) show a close relationship, likely because organic waste and agricultural runoff contribute to higher ammonium levels, which in turn raise chemical oxygen demand.
 
 
@@ -371,7 +358,6 @@ The scatterplot illustrates the relationship between total inorganic nitrogen an
 Interestingly, the plot also shows an overlap of risk types of different areas, which can be an indication of the fact that there could be stations that have moderate level of nitrogen and phosphate. However this is also an important highlight the need for more localized monitoring of the water objects and stations.  
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Merge the data with stations to have the coordinates for further visualization on the map
 merged_data <- stations_sf %>%
   left_join(data_cleaned %>% select(Station_Number, Eutrophication_Risk), by = "Station_Number") %>%
   filter(!is.na(Eutrophication_Risk))
@@ -383,7 +369,8 @@ ggplot() +
   labs(title = "Eutrophication Risk Across Monitoring Stations",
        color = "Eutrophication Risk Type") +
   theme_classic() + 
-  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),axis.text.x = element_blank(),
+        axis.text.y = element_blank(),axis.ticks = element_blank())
 ```  
 
 The Phosphorus-Limited stations show more frequency over Nitrogen-Limited stations. Phosphorus often enters water systems through fertilizer runoff, detergents, and inadequately treated wastewater. The prevalence of phosphorus-limited stations highlights the need for robust measures to limit phosphorus inputs. These regions are at greater risk of developing harmful algal blooms if phosphorus levels rise, potentially impacting water quality, biodiversity, and human health. Although the Nitrogen-Limited stations are met less frequently, they require as much attention as the Phosphorus-Limited stations and immediate means of reducing excess nitrogen harming both the nature and humans.  
@@ -429,7 +416,7 @@ temporal_trends <- data_cleaned %>%
                values_to = "Concentration")
 
 ggplot(temporal_trends, aes(x = as.Date(Date), y = Concentration, color = Nutrient)) +
-  geom_line(size = 1.2) +
+  geom_line(size = 1) +
   scale_color_viridis_d() +
   labs(
     title = "Temporal Trends in Nutrient Pollution",
