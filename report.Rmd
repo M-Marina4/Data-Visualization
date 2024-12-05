@@ -159,7 +159,8 @@ ggplot(station_counts_1, aes(y = Number_of_Stations)) +
     y = "Number of Stations",
     x = ""
   ) +
-  theme(axis.text.x = element_blank())
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+        axis.text.x = element_blank())
 ```
 From the boxplot, it can be observed that the majority of water objects have relatively few monitoring stations, as indicated by the clustering within the box. The median number of stations is low, suggesting that half of the water objects have fewer than this value. However, there are a number of significant outliers above the upper whisker. The overall distribution is right-skewed, reflecting a monitoring strategy focused on larger or more significant water objects. While this prioritization is logical, the low representation of many water objects suggests that smaller or less prominent areas may not be receiving adequate attention. This imbalance could leave certain ecological or human health risks unaddressed.
 
