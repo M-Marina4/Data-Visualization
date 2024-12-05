@@ -6,7 +6,7 @@ library(shinyBS)
 library(DT)
 
 # Load the dataset
-water <- read.csv("cleaned_water_data.csv")
+water <- read.csv("../data/processed/cleaned_water_data.csv")
 
 # Define UI
 ui <- dashboardPage(
