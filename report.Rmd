@@ -2,6 +2,7 @@
 title: ""
 author: ""
 date: ""
+always_allow_html: true
 output:
   pdf_document:
     latex_engine: xelatex
@@ -18,7 +19,9 @@ library(ggplot2)
 library(corrplot)
 library(lubridate)
 library(systemfonts)
+library(networkD3)
 library(GGally)
+library(tidyr)
 library(knitr)
 library(ggcorrplot)
 library(FactoMineR)
@@ -73,14 +76,16 @@ Water quality in Armenia is vital because industrial, agricultural, and urban ac
 
 The dataset being analyzed during the analysis contains vital water quality measurements collected from various monitoring stations across multiple water bodies. Each row represents a specific sampling event, with columns providing detailed information on physical, chemical, and biological parameters measured during that event. The dataset includes variables such as Dissolved Oxygen (mg/L), Biochemical Oxygen Demand (BOD5) (mg/L), and Chemical Oxygen Demand (COD) (mg/L), which are critical indicators of organic pollution and water health. Additionally, it includes nutrient concentrations (e.g., Ammonium, Nitrate, and Phosphate), metal levels (e.g., Zinc, Lead, and Copper), and general information like Sampling Date, Station Location, and Water Object.
 The temporal coverage spans from the earliest recorded sample date (`r min(data_cleaned$Date)`) to the latest (`r max(data_cleaned$Date)`), enabling trend analysis over time. Numeric variables provide quantitative measurements essential for understanding variations and correlations within the dataset.
-This structure ensures a comprehensive dataset, allowing in-depth analysis of water quality trends, pollution sources, and potential ecological impacts. For a detailed explanation of each column, including definitions, units, and significance, please refer to the[Column Descriptions section [http://127.0.0.1:4680/]. This section will guide readers through the dataset's attributes, offering clarity and context for subsequent analyses.
+This structure ensures a comprehensive dataset, allowing in-depth analysis of water quality trends, pollution sources, and potential ecological impacts. For a detailed explanation of each column, including definitions, units, and significance, please refer to the[Column Descriptions section [https://elen-ghalechyan.shinyapps.io/Data_Overview/]. This section will guide readers through the dataset's attributes, offering clarity and context for subsequent analyses.
 
 \section*{\Huge Hypothesis and Analysis}
 
-**Analysis**: Distribution of Sampling Stations Across Water Objects
+\section*{Analysis: Distribution of Sampling Stations Across Water Objects}
 
-**Null Hypothesis (H0)**: Sampling stations are equally distributed across different water objects.
-**Alternative Hypothesis (H1)**: Sampling stations are not equally distributed across different water objects.
+
+\textbf{Null Hypothesis (H0)}: Sampling stations are equally distributed across different water objects.\newline
+\textbf{Alternative Hypothesis (H1)}: Sampling stations are not equally distributed across different water objects.
+
 
 First, we examine the distribution of sampling stations across several water objects to understand the representativeness of the dataset. This allows us to identify if some water objects are over or under represented and subsequently can influence future analyses. We can get some initial insights into the balance of the dataset by visualizing the distribution and then summarizing the top and bottom water objects by the number of stations.
 
@@ -120,10 +125,8 @@ ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = N
 There is a significant variation between the number of stations throughout the water objects. For a better understanding, 5 water objects with the most number of stations are filtered.  
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Further analysis of the water objects with the most stations
 top_5 <- head(station_counts, 5)
 
-# Create the plot
 ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
   geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
   geom_label(aes(label = Number_of_Stations), vjust = 0.5, size = 4) + 
@@ -186,8 +189,118 @@ ggplot() +
 
 The spatial distribution of monitoring stations across Armenia, visualized on the map, provides a comprehensive understanding of their geographical placement in relation to key water bodies. This complements the earlier statistical findings, where prominent water objects such as Great Sevan, Small Sevan, and major rivers like Hrazdan were identified as having the highest number of sampling stations. The map highlights a strategic focus on these critical resources, which play an essential role in Armenia’s water supply and ecosystem health. However, it also underscores potential gaps in coverage, particularly in less monitored regions, which aligns with the boxplot analysis suggesting underrepresentation of smaller or less prominent water bodies.
 
-\section*{\Huge Analysis of Water Quality Components and Limitations}
+\section*{Analysis: Relationships Between Water Objects and Key Pollutants}
+
+\textbf{Null Hypothesis (H0)}: The distribution and levels of key pollutants (Dissolved Oxygen, COD, NH4, Pb, and SO4) are consistent across all selected water objects.\newline
+\textbf{Alternative Hypothesis (H1)}: The distribution and levels of key pollutants vary significantly across the selected water objects.
+
+
+The aim of this analysis is to visualize and understand the differences in pollution patterns across selected water objects by focusing on their associations with key contaminants. To achieve this, the top 5 water objects with the highest number of monitoring stations and the bottom 5 water objects with the least number of monitoring stations have been selected. This selection highlights the variability between heavily monitored and less monitored water objects, providing a balanced view of contamination dynamics.
+
+The pollutants included in this analysis—Dissolved Oxygen (DO), Chemical Oxygen Demand (COD), Ammonium (NH4), Lead (Pb), and Sulfate (SO4)—were chosen for their environmental significance and diverse origins. DO is a critical indicator of water health, with low levels often signaling pollution or ecosystem stress. COD reflects organic pollution levels and is a direct measure of water contamination. NH4 is linked to nutrient pollution from agricultural runoff or wastewater discharge, contributing to eutrophication. Pb, a toxic heavy metal, is often associated with industrial or urban pollution, posing significant ecological and public health risks. SO4 serves as an indicator of industrial or mining contamination, affecting water usability and aquatic habitats.
+
+Logically, we expect the Sankey diagram to reveal distinct patterns of contamination. Heavily monitored water objects might exhibit diverse pollution profiles due to their ecological or strategic importance, while less monitored objects may show narrower or less consistent associations. We also anticipate variations in pollutant levels, with industrial regions showing higher heavy metal concentrations and agricultural areas demonstrating elevated nutrient pollution. This analysis will provide a detailed understanding of these differences, guiding targeted interventions for water quality improvement.
+
+```{r, include=FALSE}
+# Rank water objects by the number of stations (or another metric)
+top_5_objects <- station_counts %>% top_n(5, Number_of_Stations)
+least_5_objects <- station_counts %>% top_n(-5, Number_of_Stations)
+
+# Combine top and least water objects
+selected_objects <- bind_rows(top_5_objects, least_5_objects)
+
+# Identify key pollutant columns
+pollutants <- c("Dissolved_Oxygen", "COD", "NH4", "Pb", "SO4") 
+
+# Filter the dataset for selected water objects
+contaminant_data <- data_cleaned %>%
+  filter(Water_Object %in% selected_objects$Water_Object) %>%  # Filter for selected objects
+  select(Water_Object, all_of(pollutants)) %>%  # Select relevant columns
+  pivot_longer(
+    cols = all_of(pollutants),
+    names_to = "Contaminant_Type",
+    values_to = "Contaminant_Level"
+  ) %>%
+  group_by(Water_Object, Contaminant_Type) %>%
+  summarise(Avg_Level = mean(Contaminant_Level, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(Avg_Level))
+
+```
+
+```{r, include=FALSE}
+nodes <- data.frame(
+  name = c(
+    unique(contaminant_data$Water_Object), 
+    unique(contaminant_data$Contaminant_Type) 
+  )
+)
+
+
+links <- contaminant_data %>%
+  mutate(
+    source = match(Water_Object, nodes$name) - 1,  
+    target = match(Contaminant_Type, nodes$name) - 1 
+  ) %>%
+  select(source, target, Avg_Level) %>%
+  rename(value = Avg_Level) 
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Create the Sankey Diagram
+sankeyNetwork(
+  Links = links,        
+  Nodes = nodes,             
+  Source = "source",        
+  Target = "target",    
+  Value = "value",    
+  NodeID = "name",           
+  units = "Average Level",     
+  fontSize = 14,        
+  nodeWidth = 30,
+  colourScale = 'd3.scaleOrdinal(["#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f"])'
+)
+```
+
+
+Amongst the pollutants, Chemical Oxygen Demand (COD) has largest flows associated with the Lake Sevan (Great Sevan), indicating that there exists organic pollution in excess, probably due to a discharge or runoff resulting from industrial activity. In addition, COD is highly correlated with other water bodies including Hrazdan and Pambak; however, flow thicknesses are heterogeneous further implying different pollution sources. Relationship of sulfate (SO4) with Small Sevan and Arpi Lake Reservoir suggests such activities as industrial and mining related activities or natural geochemical processes. Herher and Kasakh are ammonium (NH4), which are with farming or without effective sewage discharge, especially in zones near farming. Less prominent lead (Pb) connections appear to represent heavy metal contamination at localized water objects, possibly induced by industrial or urban sources nearby. Finally, dissolved oxygen (DO) levels linked to multiple water bodies display which areas are stressed ecologically and reduced DO frequently indicates poor water quality and eutrophication. This diagram serves to illustrate how different degrees and types of pollution affect different water objects, conveying the spatial complexity and dynamics of contamination that are useful to understand to plan for targeted water management.
+
+
+
+
+
+
+
+**Analysis**: Analysis of Water Quality Components and Limitations
+
 While the map provides a visual representation of the distribution of sampling stations across various water objects, the next step is to shift focus to the water quality components that were analyzed.These components, such as dissolved oxygen, chemical oxygen demand (COD), and various chemical contaminants, offer crucial insights into the quality of the water. The following analysis will explore the concentrations and trends observed for these components, highlighting any significant variations or patterns that emerge from the data. It is important to note that the number of sources included and samples taken in the data is relatively limited and, additionally, some components were adjusted through multiplication by specific factors (?as advised by our professor). These adjustments, while necessary for analysis, may not perfectly align with actual conditions. Consequently, the interpretations of the data might lead to misconceptions or overgeneralizations. 
+
+**Hypothesis 1**:
+
+**Null Hypothesis (H0)**: The concentrations of water quality components (e.g., dissolved oxygen, COD, chemical contaminants) are consistent across all water objects.
+**Alternative Hypothesis (H1)**: The concentrations of water quality components vary significantly across different water objects.
+
+
+
+
+
+
+
+Hypothesis 2:
+
+Null Hypothesis (H₀): There are no temporal trends in the concentrations of key water quality components.
+Alternative Hypothesis (H₁): There are significant temporal trends in the concentrations of key water quality components, such as dissolved oxygen and COD.
+
+Hypothesis 3:
+
+Null Hypothesis (H₀): The adjustments made to the data through multiplication factors have no significant impact on the observed trends and patterns.
+Alternative Hypothesis (H₁): The adjustments made to the data significantly influence the observed trends and patterns, potentially leading to deviations from actual conditions.
+
+Hypothesis 4:
+
+Null Hypothesis (H₀): The limited number of sources and samples has no significant impact on the representativeness of the dataset.
+Alternative Hypothesis (H₁): The limited number of sources and samples affects the representativeness of the dataset, leading to potential biases in water quality assessments.
+
 
 
 ```{r}
