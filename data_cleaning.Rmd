@@ -20,7 +20,7 @@ library(factoextra)
 library(pheatmap)
 ```
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, include = FALSE}
 col_types <- c(rep("text", 4), 
                "date", 
                "date",
@@ -251,9 +251,73 @@ data_cleaned[, 7:45] <- lapply(data_cleaned[, 7:45], function(x) {
 ```
 
 ```{r}
-missing_summary <- data_cleaned %>%
-  summarise_all(~ sum(is.na(.)))
+translation_map <- c(
+  "Փամբակ" = "Pambak",
+  "Դեբեդ" = "Debed",
+  "Ձորագետ" = "Dzoraget",
+  "Տաշիր" = "Tashir",
+  "Մարց" = "Marz",
+  "Ախթալա" = "Akhtala",
+  "Աղստև" = "Aghstev",
+  "Գետիկ" = "Getik",
+  "Արաքս" = "Araks",
+  "Ախուրյան" = "Akhuryan",
+  "Աշոցք" = "Ashotsk",
+  "Կարկաչուն" = "Karkachun",
+  "Մեծամոր" = "Metsamor",
+  "Քասախ" = "Kasakh",
+  "Գեղարոտ" = "Gegharot",
+  "Շացվարդ" = "Shatsvard",
+  "Շաղվարդ" = "Shaghvard",
+  "Հախվերդ" = "Hakhverd",
+  "Հրազդան" = "Hrazdan",
+  "Մարմարիկ" = "Marmarik",
+  "Գետառ" = "Getar",
+  "Ձկնագետ" = "Dzknget",
+  "Մասրիկ" = "Masrik",
+  "Սոթք" = "Sotk",
+  "Կարճաղբյուր" = "Karachakhbyur",
+  "Արփա-Սևան թունել" = "Arpa-Sevan Tunnel",
+  "Վարդենիս" = "Vardenis",
+  "Մարտունի" = "Martuni",
+  "Արգիճի" = "Argitchi",
+  "Ծակքար" = "Tsakkar",
+  "Շողվագ" = "Shoghvag",
+  "Գավառագետ" = "Gavaraget",
+  "Վեդի" = "Vedi",
+  "Արփա" = "Arpa",
+  "Եղեգիս" = "Yeghegis",
+  "Մեղրիգետ" = "Meghriget",
+  "Ողջի" = "Voghji",
+  "Գեղի" = "Geghi",
+  "Որոտան" = "Vorotan",
+  "Սիսիան" = "Sisian",
+  "Վարարակ" = "Vararak",
+  "Արփի լճի ջրամբար" = "Arpi Lake Reservoir",
+  "Արփի լճի ջրմբ." = "Arpi Lake Res.",
+  "Ախուրյանի ջրամբար" = "Akhuryan Reservoir",
+  "Ապարանի ջրմբ." = "Aparan Res.",
+  "Ապարանի ջրամբար" = "Aparan Reservoir",
+  "Երևանյան լիճ" = "Yerevan Lake",
+  "Ազատի ջրամբար" = "Azat Reservoir",
+  "Կեչուտի ջրամբար" = "Kechut Reservoir",
+  "Գարգառ" = "Gargar",
+  "Ծաղկաձոր" = "Tsaghkadzor",
+  "Շնող" = "Shnogh",
+  "Կարճևան" = "Karchevan",
+  "Նորաշենիկ" = "Norashenik",
+  "Աճանան (Նորաշենիկ)" = "Achanan (Norashenik)",
+  "Դարբ" = "Darb",
+  "Հերհեր" = "Herher",
+  "Որոտան-Արփա ջրատար" = "Vorotan-Arpa Waterway",
+  "Սևանա լիճ - Մեծ Սևան" = "Lake Sevan - Great Sevan",
+  "Սևանա լիճ - Փոքր Սևան" = "Lake Sevan - Small Sevan"
+)
+
+data_cleaned <- data_cleaned %>%
+  mutate(Water_Object = translation_map[Water_Object])
 ```
+
 
 ```{r}
 write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
@@ -261,11 +325,9 @@ write.csv(data_cleaned, "cleaned_water_data.csv", row.names = FALSE)
 
 ```{r}
 file_path <- "Coordinates.xlsx"
-
 df <- read_excel(file_path)
 
 ```
-
 
 ```{r}
 colnames(df) <- c("River_Basin_Area", "Water_Object", "Station_Number", 
@@ -274,8 +336,88 @@ colnames(df) <- c("River_Basin_Area", "Water_Object", "Station_Number",
 
 ```
 
+```{r}
+translation_map <- c(
+  "Փամբակ" = "Pambak",
+  "Դեբեդ" = "Debed",
+  "Ձորագետ" = "Dzoraget",
+  "Տաշիր" = "Tashir",
+  "Մարցիգետ"= "Marz",
+  "Ախթալա" = "Akhtala",
+  "Աղստև" = "Aghstev",
+  "Գետիկ" = "Getik",
+  "Արաքս" = "Araks",
+  "Ախուրյան" = "Akhuryan",
+  "Աշոցք" = "Ashotsk",
+  "Կարկաչուն" = "Karkachun",
+  "Մեծամոր" = "Metsamor",
+  "Քասախ" = "Kasakh",
+  "Գեղարոտ" = "Gegharot",
+  "Շացվարդ" = "Shatsvard",
+  "Շաղվարդ" = "Shaghvard",
+  "Հախվերդ" = "Hakhverd",
+  "Հրազդան" = "Hrazdan",
+  "Մարմարիկ" = "Marmarik",
+  "Գետառ" = "Getar",
+  "Ձկնագետ" = "Dzknget",
+  "Մասրիկ" = "Masrik",
+  "Սոթք" = "Sotk",
+  "Կարճաղբյուր" = "Karachakhbyur",
+  "Արփա-Սևան թունել" = "Arpa-Sevan Tunnel",
+  "Վարդենիս" = "Vardenis",
+  "Մարտունի" = "Martuni",
+  "Արգիճի" = "Argitchi",
+  "Ծակքար" = "Tsakkar",
+  "Շողվագ" = "Shoghvag",
+  "Գավառագետ" = "Gavaraget",
+  "Վեդի" = "Vedi",
+  "Արփա" = "Arpa",
+  "Եղեգիս" = "Yeghegis",
+  "Մեղրիգետ" = "Meghriget",
+  "Ողջի" = "Voghji",
+  "Գեղի" = "Geghi",
+  "Որոտան" = "Vorotan",
+  "Սիսիան" = "Sisian",
+  "Վարարակ" = "Vararak",
+  "Արփի լճի ջրամբար" = "Arpi Lake Reservoir",
+  "Արփի լճի ջրմբ." = "Arpi Lake Res.",
+  "Ախուրյանի ջրամբար" = "Akhuryan Reservoir",
+  "Ապարանի ջրմբ." = "Aparan Res.",
+  "Ապարանի ջրամբար" = "Aparan Reservoir",
+  "Երևանյան լիճ" = "Yerevan Lake",
+  "Ազատի ջրամբար" = "Azat Reservoir",
+  "Կետչուտի ջրամբար" = "Kechut Reservoir",
+  "Գարգառ" = "Gargar",
+  "Ծաղկաձոր (Տանձաղբյուր)"= "Tsaghkadzor",
+  "Շնող" = "Shnogh",
+  "Կարճևան" = "Karchevan",
+  "Նորաշենիկ" = "Norashenik",
+  "Աճանան (Նորաշենիկ)" = "Achanan (Norashenik)",
+  "Դարբ" = "Darb",
+  "Հերհեր" = "Herher",
+  "Որոտան-Արփա թունել"= "Vorotan-Arpa Waterway",
+  "Սևանա լիճ - Մեծ Սևան" = "Lake Sevan - Great Sevan",
+  "Սևանա լիճ - Փոքր Սևան" = "Lake Sevan - Small Sevan",
+  "Սևանա լիճ" = "Lake Sevan"
+)
+
+df <- df %>%
+  mutate(Water_Object = translation_map[Water_Object])
+```
+
+```{r, echo = FALSE, warning = FALSE, include = FALSE}
+coordinates_clean <- df %>%
+  mutate(
+    Longitude = as.numeric(Longitude),
+    Latitude = as.numeric(Latitude)
+  ) %>%
+  filter(!is.na(Longitude) & !is.na(Latitude))  
+
+coordinates_clean <- coordinates_clean %>%
+  distinct(Longitude, Latitude, .keep_all = TRUE)
+```
 
 ```{r}
-write.csv(df, "coordinates.csv", row.names = FALSE)
+write.csv(coordinates_clean, "coordinates.csv", row.names = FALSE)
 ```
 

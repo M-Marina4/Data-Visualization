@@ -1,0 +1,183 @@
+---
+title: ""
+author: ""
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+library(readxl)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(corrplot)
+library(lubridate)
+library(systemfonts)
+library(GGally)
+library(knitr)
+library(ggcorrplot)
+library(FactoMineR)
+library(factoextra)
+library(pheatmap)
+library(reshape2)
+library(spdep)      
+library(spatstat)  
+library(viridis)
+library(ggpubr)
+library(ggcorrplot)
+```
+
+```{r, echo = FALSE, warning = FALSE, include = FALSE}
+data_cleaned <- read.csv("cleaned_water_data.csv")
+coordinates <- read.csv("coordinates.csv")
+```
+
+\begin{titlepage}
+    \centering
+    {\Huge \textbf{Data Visualization} \par}
+    \vspace{1cm}  % Adds 1 cm of vertical space
+    {\Huge \textbf{DS116 / CS343} \par}
+    \vspace{3cm}  % Adds 1 cm of vertical space
+    {\huge \textbf{Final Project} \par}
+    \vspace{0cm}  % Adds 1 cm of vertical space
+    {\LARGE \textbf{Water Data} \par}
+    \vspace{5cm}  % Adds 2 cm of vertical space
+    {\large Elen Ghalechyan\\Hripsime Soghomonyan\\Marieta Khachatryan\\Marina Melkonyan \par}
+    \vspace{5cm}  % Adds 1 cm of vertical space
+    \vfill
+    {\large American University of Armenia\\Yerevan, Armenia\\December 6, 2024\par}
+\end{titlepage}
+
+\section*{\Huge Overview}
+
+Water quality is one of the essential factors according to which the nature of water can be researched. Water quality directly impacts drinking water safety and agricultural productivity. Nowadays, many countries face a problem connected to the lack of drinking water. At the same time, Armenia is valued for its water resources how people state, especially foreign tourists; whenever you walk around the streets, you will come to a fountain from which water is constantly flowing, and the most exciting part is that you can use it and drink. This idea is highly connected with ecosystems and public health in Armenia; thus, understanding water quality is essential for addressing problems such as pollution, managing resources, and promoting environmental well-being. 
+
+If we consider this report from the perspective of the benefit of stakeholders, then we can state that a lot of them will benefit. The government can use this report to establish policies regulating pollutants and protecting water resources. Also, water structures can be controlled; thus, we can shift to environmental agencies that can monitor patterns of water quality degradation to react swiftly and mitigate risks. 
+
+\section*{\Huge Research Methodology}
+The research was done with the help of 2 main datasets. The first and primary dataset contains detailed measurements of water quality parameters for the monitoring stations, such as dissolved oxygen, ammonium levels, chemical oxygen demand (COD), suspended solids, water hardness level, etc. The second dataset includes the geographic coordinates of the monitoring stations, enabling spatial analysis of water quality trends within and across river basins.
+
+The datasets were collected in Armenian, requiring translation into English for easy analysis. Additional preprocessing steps included standardizing date and time formats, merging the datasets using station identifiers, and addressing missing values through imputation or exclusion. 
+
+The R programming language was used for the analysis. Additionally, we developed an interactive dashboard using the "Shiny" package. 
+
+\section*{\Huge Literature Review}
+Water quality in Armenia is vital because industrial, agricultural, and urban activities have increasingly impacted water quality. Two key reports provide valuable insights into Armenia's water resources: The Araks River Basin and the World Bank report on water resource management challenges. The report first looks at the Araks River Basin, including the most critical issues: pollution from heavy metals, turbidity, and untreated discharges. Arsenic and chromium are often elevated in tributaries of the Hrazdan and Sevjur from industrial and mining activities. These findings underscore the significance of pollution control targeting and improved wastewater treatment to conserve the basin's ecological and public health. The World Bank report introduces broader issues of water governance, infrastructure, and use, which are also raised in the context of Armenia's water resource management. However, this confirms the fragmentation of water management systems through multiple institutional responsibilities, which undermines efficient policymaking. The report recommends an integrated approach to water management, combining policy reforms, infrastructure investments, and data-driven monitoring to overcome Armenia's growing pressures on its water resources. These reports give a complete picture of Armenia's water quality problems. The World Bank report, while providing strategic recommendations for systemic improvements in water governance and infrastructure, focuses on broader determinants of pollution. For further details, refer to the https://www.researchgate.net/publication/225259203_Assessing_the_Quality_of_Water_of_the_Araks_Basin_Rivers_in_Armeniaand and  https://documents1.worldbank.org/curated/en/099062424121038546/pdf/P1700301619bb50718c6b1c554e0879f1e.pdf.
+
+\section*{\Huge Data}
+
+The dataset being analyzed during the analysis contains vital water quality measurements collected from various monitoring stations across multiple water bodies. Each row represents a specific sampling event, with columns providing detailed information on physical, chemical, and biological parameters measured during that event. The dataset includes variables such as Dissolved Oxygen (mg/L), Biochemical Oxygen Demand (BOD5) (mg/L), and Chemical Oxygen Demand (COD) (mg/L), which are critical indicators of organic pollution and water health. Additionally, it includes nutrient concentrations (e.g., Ammonium, Nitrate, and Phosphate), metal levels (e.g., Zinc, Lead, and Copper), and general information like Sampling Date, Station Location, and Water Object.
+The temporal coverage spans from the earliest recorded sample date (`r min(data_cleaned$Date)`) to the latest (`r max(data_cleaned$Date)`), enabling trend analysis over time. Numeric variables provide quantitative measurements essential for understanding variations and correlations within the dataset.
+This structure ensures a comprehensive dataset, allowing in-depth analysis of water quality trends, pollution sources, and potential ecological impacts. For a detailed explanation of each column, including definitions, units, and significance, please refer to the Column Descriptions section [Insert Link Here]. This section will guide readers through the dataset's attributes, offering clarity and context for subsequent analyses.
+
+\section*{\Huge Hypothesis and Analysis}
+\section*{\Huge Conclusion}
+\section*{\Huge References}
+
+The data was collected from 2716 stations for different water objects in Armenia. Samples were taken from the stations on different days starting from the beginning of 2022 until October 2024. 
+```{r}
+station_counts <- data_cleaned %>%
+  group_by(Water_Object) %>%
+  summarise(Number_of_Stations = n())%>%
+  arrange(desc(Number_of_Stations))
+total_stations <- station_counts %>% summarise(Total_Stations = sum(Number_of_Stations))
+```
+
+```{r}
+top_bottom_counts <- bind_rows(
+  head(station_counts, 5), 
+  tail(station_counts, 5)  
+)
+# top_bottom_counts
+```
+
+```{r}
+ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", width = 0.7) +
+  labs(
+    title = "Number of Sampling Stations per Water Object",
+    subtitle = "Visualizing the distribution of stations across various water objects",
+    x = "Water Object",
+    y = "Number of Stations"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+```
+
+
+There is a significant variation between the number of stations throughout the water objects. For a better understanding, 5 water objects with the most number of stations are filtered.  
+```{r}
+#Further analysis of the water objects with the most stations
+top_5 <- head(station_counts, 5)
+ggplot(top_5, aes(x = reorder(Water_Object, -Number_of_Stations), y = Number_of_Stations)) +
+  geom_col(fill = "steelblue", color = "black", width = 0.7) +
+  geom_text(aes(label = Number_of_Stations), vjust = -0.5, size = 4) +
+  labs(
+    title = "Top 5 Water Objects by Sampling Stations",
+    x = "Water Object",
+    y = "Number of Stations"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+
+```
+The water objects with the most number of stations are Big and Small Sevans, Hrazdan, Pambak and Qasakh. The analysis reveals that the top five water objects with the highest number of sampling stations align with expectations, as these represent the primary water sources for Armenia. These water objects are known for their significant contribution to the country's water supply system and play a critical role in meeting both domestic and industrial water demands. Their prominence in the dataset highlights their importance within the broader context of Armenia’s hydrological resources.
+
+
+```{r}
+armenia_map <- st_read("Armenia_Marzes.shp")
+stations_sf <- st_as_sf(coordinates, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = armenia_map, fill = "lightgrey", color = "black") +
+  geom_sf(data = stations_sf, aes(color = Water_Object), size = 2) +
+  scale_color_viridis_d() +
+  labs(title = "Monitoring Stations Across Armenia", color = "Water Object") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+```
+The bar plots presented earlier highlight the distribution of sampling stations across different water objects. These visualizations provide a clear overview of the number of stations for each water object, which is essential for understanding the scope of data collection. However, to gain a more comprehensive understanding of spatial trends and the geographical distribution of water quality monitoring sites, it is crucial to explore the data on a map. The visualization on the map will allow a further investigation of any spatial patterns and regional variations that may not be immediately apparent from the bar plots alone.
+
+\section*{\Huge Analysis of Water Quality Components and Limitations}
+While the map provides a visual representation of the distribution of sampling stations across various water objects, the next step is to shift focus to the water quality components that were analyzed.These components, such as dissolved oxygen, chemical oxygen demand (COD), and various chemical contaminants, offer crucial insights into the quality of the water. The following analysis will explore the concentrations and trends observed for these components, highlighting any significant variations or patterns that emerge from the data. It is important to note that the number of sources included and samples taken in the data is relatively limited and, additionally, some components were adjusted through multiplication by specific factors (?as advised by our professor). These adjustments, while necessary for analysis, may not perfectly align with actual conditions. Consequently, the interpretations of the data might lead to misconceptions or overgeneralizations. 
+
+
+```{r}
+# Univariate Analysis - Histogram of Dissolved Oxygen
+ggplot(data_cleaned, aes(x = Dissolved_Oxygen)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(
+    title = "Distribution of Dissolved Oxygen", 
+    x = "Dissolved Oxygen (mg/L)",
+    y = "Frequency") + 
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5))  
+
+```
+The histogram illustrates the distribution of dissolved oxygen (DO) levels in water samples, revealing several key patterns. The distribution of DO is highly right-skewed, with the majority of values concentrated between 0 and 15 mg/L.Within this range a significant increase can be observed between 5 and 10 mg/L, which is considered to be the optimal DO level. However, there is a notable spike at or near zero indicating the presence of hypoxic conditions in certain water samples. Hypoxic conditions occur when DO levels in water drop below 2 mg/L, which is insufficient to support most aquatic life. These conditions are generally harmful to the health of aquatic ecosystems. This highlights the fact that there are stations which are either close to or in "dead zones". 
+
+
+
+
+
+
+

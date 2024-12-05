@@ -1,9 +1,12 @@
 ---
-title: "analysis"
-author: "Elen Ghalechyan, Section A"
-date: "2024-11-29"
-output: pdf_document
+title: ""
+author: ""
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex  
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -26,21 +29,27 @@ library(spatstat)   # For Ripley's K-function
 library(viridis)
 library(ggpubr)
 library(ggcorrplot)
+
+grep("Arial", system_fonts()$family, value = TRUE)
 ```
 
-```{r}
+# Table of Contents
+
+\newpage
+
+```{r, echo = FALSE, warning = FALSE, include = FALSE}
 data_cleaned <- read.csv("cleaned_water_data.csv")
 coordinates <- read.csv("coordinates.csv")
-
 ```
 
 
-```{r}
+```{r, warning = FALSE, message = FALSE, fig.align = 'center'}
 station_counts <- data_cleaned %>%
   group_by(Water_Object) %>%
   summarise(Number_of_Stations = n())%>%
   arrange(desc(Number_of_Stations))
 ```
+
 ```{r}
 top_bottom_counts <- bind_rows(
   head(station_counts, 5), 
@@ -65,7 +74,6 @@ ggplot(station_counts, aes(x = reorder(Water_Object, -Number_of_Stations), y = N
     plot.subtitle = element_text(size = 12, hjust = 0.5, family = "Arial Unicode MS"),
     axis.text.x = element_text(angle = 90, hjust = 1, family = "Arial Unicode MS"),
   )
-
 ```
 ```{r}
 arm_sf <- st_read('Armenia_Marzes.shp', quiet = TRUE) 
@@ -82,41 +90,26 @@ arm_df = data.frame(Marz = arm_df$Name_Eng, st_coordinates(arm_df))
 ggplot(arm_df, aes(x = X, y = Y, group = Marz)) +
   geom_polygon(fill = 'white', color = 'black') + coord_fixed()+ theme_void()
 ```
+
 ```{r}
-coordinates_data_cleaned <- coordinates %>%
-  filter(!is.na(as.numeric(Latitude)) & !is.na(as.numeric(Longitude))) %>%
+coordinates_clean <- coordinates %>%
   mutate(
-    Latitude = as.numeric(Latitude),
-    Longitude = as.numeric(Longitude)
-  )
+    Longitude = as.numeric(Longitude),
+    Latitude = as.numeric(Latitude)
+  ) %>%
+  filter(!is.na(Longitude) & !is.na(Latitude))  # Remove rows with NA in coordinates
+
+# Check for duplicates and remove them
+coordinates_clean <- coordinates_clean %>%
+  distinct(Longitude, Latitude, .keep_all = TRUE)
 ```
-
-
-
 ```{r}
-# region_counts <- coordinates_data_cleaned %>%
-#   group_by(Region) %>%
-#   summarise(Number_of_Stations = n())
-# 
-# arm_sf <- arm_sf %>%
-#   left_join(region_counts, by = c("Name_Eng" = "Region"))
-# 
-# 
-# ggplot(data = arm_sf) +
-#   geom_sf(aes(fill = Number_of_Stations), color = "black") +
-#   scale_fill_gradient(low = "lightblue", high = "darkblue", na.value = "grey") +
-#   labs(
-#     title = "Regional Distribution of Water Monitoring Stations",
-#     fill = "Number of Stations",
-#     x = "",
-#     y = ""
-#   ) +
-#   theme_void() +
-#   theme(
-#     plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-#     legend.position = "right"
-#   )
+colSums(is.na(coordinates_clean))
 ```
+
+
+
+
 
 
 
