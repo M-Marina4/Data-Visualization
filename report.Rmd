@@ -334,6 +334,7 @@ ggcorrplot(
 
 This heatmap paints a clear picture of how different water quality factors are connected and influence one another. For instance, we see that BOD5 (Biochemical Oxygen Demand) and COD (Chemical Oxygen Demand) are strongly linked. This makes sense because both measure the impact of organic pollution in water — when there's more organic matter breaking down, both of these measures increase. Similarly, COD and ammonium (NH4) show a close relationship, likely because organic waste and agricultural runoff contribute to higher ammonium levels, which in turn raise chemical oxygen demand.
 
+For more correlation heatmaps, refer to [http://127.0.0.1:5776].
 
 \subsection{Eutrophication Risk Across Stations}
 \label{subsec:eutrophication-risk}
@@ -451,12 +452,15 @@ Ammonium (NH4) exhibited significant variability, with noticeable spikes in late
 The observed patterns—ammonium's variability, nitrate's steadiness, and phosphate's low levels—provide strong evidence that nutrient pollution is shaped by both anthropogenic and seasonal factors. Therefore, the null hypothesis, which assumes no temporal variability in nutrient pollution, is rejected. The alternative hypothesis, asserting the influence of human and seasonal drivers, is accepted.
 
 
+\subsection{Cluster Analysis of Monitoring Stations Based on Water Quality Parameters}
+\label{subsec:cluster_analysis}
+
 \textbf{Null Hypothesis (H0)}: There are no discernible clusters or groupings among the monitoring stations based on water quality parameters.\newline
 \textbf{Distinct clusters exist among the monitoring stations, influenced by variations in water quality parameters.
 
 
 First of all, we need to decide the optimal number of clusters.
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 key_variables <- data_cleaned %>%
   select(Dissolved_Oxygen, BOD5, COD, NH4, Zn, Pb, NO3, PO4)
 fviz_nbclust(key_variables, FUNcluster = factoextra::hcut,
@@ -474,7 +478,7 @@ fviz_nbclust(key_variables_scaled, kmeans, method = "wss") +
 ```
 The "elbow" point, where the rate of decrease in total within-cluster sum of squares (WSS) slows significantly, is observed at 3 clusters. This suggests that adding more clusters beyond 3 does not significantly improve the compactness of the clusters.
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Silhouette Analysis
 fviz_nbclust(key_variables_scaled, kmeans, method = "silhouette") +
   labs(title = "Silhouette Analysis for Optimal Clusters")
@@ -485,7 +489,7 @@ On th other hand, the silhouette  method identifies the optimal number of cluste
 
 Now after analysing the 2 methods we need to decide which one to choose. If the focus is on achieving distinct, well-separated clusters, 2 clusters is the optimal choice (Silhouette Analysis). If the goal is to capture more variability in the data without overfitting, 3 clusters is a reasonable choice (Elbow Method).
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Perform K-means clustering (4 clusters)
 set.seed(123)
